@@ -28,7 +28,12 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo) return;
+        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo)
+        {
+            horizontal = 0f;
+            anim.SetFloat("Velocidade", 0f);
+            return;
+        }
 
         var kb = Keyboard.current;
         if (kb == null) return;
@@ -66,6 +71,12 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+
         rb.linearVelocity = new Vector2(horizontal * velocidade, rb.linearVelocity.y);
 
         if (pontoChao != null)

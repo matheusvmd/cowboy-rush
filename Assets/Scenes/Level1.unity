@@ -1054,8 +1054,18 @@ MonoBehaviour:
   - {fileID: 1569547678}
   - {fileID: 1588766093}
   painelGameOver: {fileID: 1738729442}
+  painelMenuInicial: {fileID: 0}
+  painelRegras: {fileID: 0}
+  botaoComecar: {fileID: 0}
+  botaoRegras: {fileID: 0}
+  botaoVoltarRegras: {fileID: 0}
+  botaoVoltarMenuGameOver: {fileID: 0}
   spriteVidaCheia: {fileID: 0}
   spriteVidaVazia: {fileID: 0}
+  corVidaCheia: {r: 0.92, g: 0.03, b: 0.09, a: 1}
+  corVidaBrilho: {r: 1, g: 0.38, b: 0.46, a: 1}
+  corVidaBorda: {r: 0.34, g: 0.01, b: 0.03, a: 1}
+  corVidaVazia: {r: 0.34, g: 0.01, b: 0.03, a: 0.45}
 --- !u!114 &523305707
 MonoBehaviour:
   m_ObjectHideFlags: 0

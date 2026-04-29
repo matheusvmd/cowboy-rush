@@ -45,6 +45,12 @@ public class EnemyController : MonoBehaviour
     private void Update()
     {
         if (estadoAtual == Estado.Morto) return;
+        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo)
+        {
+            anim.SetBool("Correndo", false);
+            anim.SetBool("Atacando", false);
+            return;
+        }
 
         timerAtaque -= Time.deltaTime;
         AtualizarEstado();
@@ -53,6 +59,11 @@ public class EnemyController : MonoBehaviour
     private void FixedUpdate()
     {
         if (estadoAtual == Estado.Morto) return;
+        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
 
         switch (estadoAtual)
         {

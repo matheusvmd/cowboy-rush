@@ -35,7 +35,9 @@ public static class SceneBuildHelper
             ri.anchoredPosition = new Vector2(i * 52, 0);
             ri.sizeDelta = new Vector2(44, 44);
             icones[i] = icone.AddComponent<Image>();
-            icones[i].color = Color.red;
+            icones[i].color = Color.white;
+            icones[i].preserveAspect = true;
+            icones[i].raycastTarget = false;
         }
 
         // Painel Game Over
