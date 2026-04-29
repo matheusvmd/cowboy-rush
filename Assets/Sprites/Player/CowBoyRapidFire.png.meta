@@ -1,0 +1,585 @@
+fileFormatVersion: 2
+guid: 2c736c10ac7d49e4fa6b8b6524a922b2
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8243090398191450332
+    second: CowBoyRapidFire_0
+  - first:
+      213: 2301169426479533501
+    second: CowBoyRapidFire_1
+  - first:
+      213: 2137544910651996502
+    second: CowBoyRapidFire_2
+  - first:
+      213: 389245713204302420
+    second: CowBoyRapidFire_3
+  - first:
+      213: -1214923598801793045
+    second: CowBoyRapidFire_4
+  - first:
+      213: 8232072082926033532
+    second: CowBoyRapidFire_5
+  - first:
+      213: -3841697455752955849
+    second: CowBoyRapidFire_6
+  - first:
+      213: 8298106638870531125
+    second: CowBoyRapidFire_7
+  - first:
+      213: -6015423446743129417
+    second: CowBoyRapidFire_8
+  - first:
+      213: -1291324833476019534
+    second: CowBoyRapidFire_9
+  - first:
+      213: -8427115661433231705
+    second: CowBoyRapidFire_10
+  - first:
+      213: -511445800415247485
+    second: CowBoyRapidFire_11
+  - first:
+      213: 4442691443212791956
+    second: CowBoyRapidFire_12
+  - first:
+      213: -4496269460218784031
+    second: CowBoyRapidFire_13
+  - first:
+      213: 7731259425842288634
+    second: CowBoyRapidFire_14
+  - first:
+      213: 5040349686937480400
+    second: CowBoyRapidFire_15
+  - first:
+      213: -8646575497956812575
+    second: CowBoyRapidFire_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: CowBoyRapidFire_0
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 0
+        width: 212
+        height: 401
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4278d54e4f8aa9d80800000000000000
+      internalID: -8243090398191450332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_1
+      rect:
+        serializedVersion: 2
+        x: 629
+        y: 0
+        width: 192
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbd4d49b6656fef10800000000000000
+      internalID: 2301169426479533501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_2
+      rect:
+        serializedVersion: 2
+        x: 1109
+        y: 0
+        width: 252
+        height: 421
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6593bd265c51aad10800000000000000
+      internalID: 2137544910651996502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_3
+      rect:
+        serializedVersion: 2
+        x: 1589
+        y: 0
+        width: 262
+        height: 421
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 452d2e1f9e0e66500800000000000000
+      internalID: 389245713204302420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_4
+      rect:
+        serializedVersion: 2
+        x: 2069
+        y: 0
+        width: 252
+        height: 431
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bef0e208c69b32fe0800000000000000
+      internalID: -1214923598801793045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_5
+      rect:
+        serializedVersion: 2
+        x: 2549
+        y: 0
+        width: 232
+        height: 421
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7a573ca1f13e3270800000000000000
+      internalID: 8232072082926033532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_6
+      rect:
+        serializedVersion: 2
+        x: 3029
+        y: 0
+        width: 252
+        height: 431
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 738b257a48c8faac0800000000000000
+      internalID: -3841697455752955849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_7
+      rect:
+        serializedVersion: 2
+        x: 3509
+        y: 0
+        width: 222
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53c4036d50cc82370800000000000000
+      internalID: 8298106638870531125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_8
+      rect:
+        serializedVersion: 2
+        x: 3989
+        y: 0
+        width: 192
+        height: 391
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b2e15b0f3ce48ca0800000000000000
+      internalID: -6015423446743129417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_9
+      rect:
+        serializedVersion: 2
+        x: 4189
+        y: 299
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ba750bd7ea441ee0800000000000000
+      internalID: -1291324833476019534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_10
+      rect:
+        serializedVersion: 2
+        x: 4469
+        y: 0
+        width: 192
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a6242764fedc0b80800000000000000
+      internalID: -8427115661433231705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_11
+      rect:
+        serializedVersion: 2
+        x: 4659
+        y: 319
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 383426811caf6e8f0800000000000000
+      internalID: -511445800415247485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_12
+      rect:
+        serializedVersion: 2
+        x: 4949
+        y: 0
+        width: 202
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 490bd57445c97ad30800000000000000
+      internalID: 4442691443212791956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_13
+      rect:
+        serializedVersion: 2
+        x: 4179
+        y: 259
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e6d8398fba0a91c0800000000000000
+      internalID: -4496269460218784031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_14
+      rect:
+        serializedVersion: 2
+        x: 4659
+        y: 279
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af758bf5c73fa4b60800000000000000
+      internalID: 7731259425842288634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_15
+      rect:
+        serializedVersion: 2
+        x: 2789
+        y: 179
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0dce8a9d55be2f540800000000000000
+      internalID: 5040349686937480400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CowBoyRapidFire_16
+      rect:
+        serializedVersion: 2
+        x: 3759
+        y: 189
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e810b86561310880800000000000000
+      internalID: -8646575497956812575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      CowBoyRapidFire_0: -8243090398191450332
+      CowBoyRapidFire_1: 2301169426479533501
+      CowBoyRapidFire_10: -8427115661433231705
+      CowBoyRapidFire_11: -511445800415247485
+      CowBoyRapidFire_12: 4442691443212791956
+      CowBoyRapidFire_13: -4496269460218784031
+      CowBoyRapidFire_14: 7731259425842288634
+      CowBoyRapidFire_15: 5040349686937480400
+      CowBoyRapidFire_16: -8646575497956812575
+      CowBoyRapidFire_2: 2137544910651996502
+      CowBoyRapidFire_3: 389245713204302420
+      CowBoyRapidFire_4: -1214923598801793045
+      CowBoyRapidFire_5: 8232072082926033532
+      CowBoyRapidFire_6: -3841697455752955849
+      CowBoyRapidFire_7: 8298106638870531125
+      CowBoyRapidFire_8: -6015423446743129417
+      CowBoyRapidFire_9: -1291324833476019534
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
