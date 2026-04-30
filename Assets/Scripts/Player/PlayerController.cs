@@ -12,18 +12,29 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject prefabBala;
     [SerializeField] private Transform pontoDisparo;
     [SerializeField] private float intervaloDisparo = 0.3f;
+    [SerializeField] private int tirosPorCarregamento = 2;
+    [SerializeField] private float tempoRecarga = 3f;
 
     private Rigidbody2D rb;
     private Animator anim;
     private bool noChao;
     private bool olhandoDireita = true;
     private float timerDisparo;
+    private float timerRecarga;
     private float horizontal;
+    private int tirosRestantes;
+    private bool recarregando;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        RecarregarInstantaneamente();
+    }
+
+    private void Start()
+    {
+        AtualizarHudMunicao();
     }
 
     private void Update()
@@ -51,12 +62,16 @@ public class PlayerController : MonoBehaviour
             anim.SetTrigger("Pulo");
         }
 
-        // Disparo
         timerDisparo -= Time.deltaTime;
-        bool atirarPress = kb.zKey.isPressed || kb.leftCtrlKey.isPressed || kb.cKey.isPressed;
+
+        if (recarregando)
+            AtualizarRecarga();
+
+        // Disparo
+        bool atirarPress = kb.zKey.wasPressedThisFrame || kb.leftCtrlKey.wasPressedThisFrame || kb.cKey.wasPressedThisFrame;
         if (atirarPress && timerDisparo <= 0f)
         {
-            Atirar();
+            TentarAtirar();
             timerDisparo = intervaloDisparo;
         }
 
@@ -83,16 +98,72 @@ public class PlayerController : MonoBehaviour
             noChao = Physics2D.OverlapCircle(pontoChao.position, 0.15f, camadaChao);
     }
 
+    private void TentarAtirar()
+    {
+        if (recarregando)
+            return;
+
+        if (tirosRestantes <= 0)
+        {
+            IniciarRecarga();
+            return;
+        }
+
+        Atirar();
+        tirosRestantes--;
+        AtualizarHudMunicao();
+
+        if (tirosRestantes <= 0)
+            IniciarRecarga();
+    }
+
     private void Atirar()
     {
         if (prefabBala == null || pontoDisparo == null) return;
 
+        Vector2 direcaoDisparo = olhandoDireita ? Vector2.right : Vector2.left;
         GameObject bala = Instantiate(prefabBala, pontoDisparo.position, Quaternion.identity);
         BulletController bullet = bala.GetComponent<BulletController>();
         if (bullet != null)
-            bullet.Inicializar(olhandoDireita ? Vector2.right : Vector2.left);
+            bullet.Inicializar(direcaoDisparo);
 
         anim.SetTrigger("Atirar");
+    }
+
+    private void IniciarRecarga()
+    {
+        recarregando = true;
+        timerRecarga = tempoRecarga;
+        AtualizarHudMunicao();
+    }
+
+    private void AtualizarRecarga()
+    {
+        timerRecarga -= Time.deltaTime;
+        if (timerRecarga > 0f)
+        {
+            AtualizarHudMunicao();
+            return;
+        }
+
+        RecarregarInstantaneamente();
+    }
+
+    private void RecarregarInstantaneamente()
+    {
+        tirosRestantes = Mathf.Max(1, tirosPorCarregamento);
+        timerRecarga = 0f;
+        recarregando = false;
+        AtualizarHudMunicao();
+    }
+
+    private void AtualizarHudMunicao()
+    {
+        UIManager.Instance?.AtualizarMunicao(
+            tirosRestantes,
+            Mathf.Max(1, tirosPorCarregamento),
+            recarregando,
+            Mathf.Max(0f, timerRecarga));
     }
 
     private void Virar()

@@ -8,6 +8,9 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [SerializeField] private Image[] iconesVida;
+    [SerializeField] private GameObject painelMunicao;
+    [SerializeField] private Text textoMunicao;
+    [SerializeField] private Text textoRecarga;
     [SerializeField] private GameObject painelGameOver;
     [SerializeField] private GameObject painelMenuInicial;
     [SerializeField] private GameObject painelRegras;
@@ -127,6 +130,21 @@ public class UIManager : MonoBehaviour
             painelGameOver.SetActive(true);
     }
 
+    public void AtualizarMunicao(int tirosRestantes, int tirosMaximos, bool estaRecarregando, float tempoRestanteRecarga)
+    {
+        ConstruirTelasSeNecessario();
+
+        if (textoMunicao != null)
+            textoMunicao.text = "Balas: " + tirosRestantes + "/" + tirosMaximos;
+
+        if (textoRecarga == null)
+            return;
+
+        textoRecarga.gameObject.SetActive(estaRecarregando);
+        if (estaRecarregando)
+            textoRecarga.text = "Recarregando: " + Mathf.CeilToInt(tempoRestanteRecarga) + "s";
+    }
+
     private Font FontePadrao
     {
         get
@@ -177,6 +195,15 @@ public class UIManager : MonoBehaviour
             Transform existente = transform.Find("Painel_GameOver");
             painelGameOver = existente != null ? existente.gameObject : CriarTelaGameOver();
         }
+
+        if (painelMunicao == null)
+        {
+            Transform existente = transform.Find("Painel_Municao");
+            painelMunicao = existente != null ? existente.gameObject : CriarPainelMunicao();
+        }
+
+        if (painelMunicao != null)
+            ColetarReferenciasPainelMunicao();
 
         ConfigurarPainelGameOver();
     }
@@ -266,6 +293,50 @@ public class UIManager : MonoBehaviour
 
         botaoVoltarMenuGameOver = CriarBotao("Botao_Reiniciar", painel.transform, "MENU INICIAL", new Vector2(0f, -60f), new Vector2(240f, 56f));
         painel.SetActive(false);
+        return painel;
+    }
+
+    private GameObject CriarPainelMunicao()
+    {
+        var painel = new GameObject("Painel_Municao", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        painel.transform.SetParent(transform, false);
+
+        var rect = painel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(1f, 0f);
+        rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(1f, 0f);
+        rect.anchoredPosition = new Vector2(-20f, 20f);
+        rect.sizeDelta = new Vector2(230f, 72f);
+
+        Image fundo = painel.GetComponent<Image>();
+        fundo.color = new Color(0.04f, 0.03f, 0.02f, 0.72f);
+        fundo.raycastTarget = false;
+
+        textoMunicao = CriarTexto(
+            "Texto_Municao",
+            painel.transform,
+            "Balas: 2/2",
+            24,
+            new Color(1f, 0.86f, 0.42f, 1f),
+            TextAnchor.MiddleRight,
+            Vector2.zero,
+            Vector2.one,
+            new Vector2(-16f, 12f),
+            new Vector2(-28f, -20f));
+
+        textoRecarga = CriarTexto(
+            "Texto_Recarga",
+            painel.transform,
+            "Recarregando: 3s",
+            18,
+            Color.white,
+            TextAnchor.MiddleRight,
+            Vector2.zero,
+            Vector2.one,
+            new Vector2(-16f, -18f),
+            new Vector2(-28f, -32f));
+        textoRecarga.gameObject.SetActive(false);
+
         return painel;
     }
 
@@ -403,11 +474,37 @@ public class UIManager : MonoBehaviour
     private void DefinirHudVisivel(bool visivel)
     {
         if (iconesVida == null || iconesVida.Length == 0 || iconesVida[0] == null)
+        {
+            if (painelMunicao != null)
+                painelMunicao.SetActive(visivel);
             return;
+        }
+        else
+        {
+            Transform painelVidas = iconesVida[0].transform.parent;
+            if (painelVidas != null)
+                painelVidas.gameObject.SetActive(visivel);
+        }
 
-        Transform painelVidas = iconesVida[0].transform.parent;
-        if (painelVidas != null)
-            painelVidas.gameObject.SetActive(visivel);
+        if (painelMunicao != null)
+            painelMunicao.SetActive(visivel);
+    }
+
+    private void ColetarReferenciasPainelMunicao()
+    {
+        if (textoMunicao == null)
+        {
+            Transform texto = painelMunicao.transform.Find("Texto_Municao");
+            if (texto != null)
+                textoMunicao = texto.GetComponent<Text>();
+        }
+
+        if (textoRecarga == null)
+        {
+            Transform texto = painelMunicao.transform.Find("Texto_Recarga");
+            if (texto != null)
+                textoRecarga = texto.GetComponent<Text>();
+        }
     }
 
     private void PrepararSpritesVida()

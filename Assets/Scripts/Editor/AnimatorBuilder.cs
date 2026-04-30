@@ -172,6 +172,7 @@ public static class AnimatorBuilder
 
         var sr = bala.AddComponent<SpriteRenderer>();
         // Usa um sprite simples para a bala (amarelo)
+        sr.sprite = CarregarSpritePixel();
         sr.color = Color.yellow;
         sr.sortingOrder = 10;
         bala.transform.localScale = new Vector3(0.15f, 0.08f, 1);
@@ -208,6 +209,18 @@ public static class AnimatorBuilder
         }
 
         Debug.Log("[CowboyRush] Prefab Bala criado: " + prefabPath);
+    }
+
+    static Sprite CarregarSpritePixel()
+    {
+        var assets = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/pixel_branco.png");
+        foreach (var asset in assets)
+        {
+            if (asset is Sprite sprite)
+                return sprite;
+        }
+
+        return null;
     }
 
     static void CriarCacto()
