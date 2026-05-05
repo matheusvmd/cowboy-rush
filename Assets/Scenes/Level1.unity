@@ -562,7 +562,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &178870654
 SpriteRenderer:
   serializedVersion: 2
@@ -2724,7 +2724,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1626221635
 SpriteRenderer:
   serializedVersion: 2
@@ -3072,6 +3072,7 @@ GameObject:
   - component: {fileID: 2065942725}
   - component: {fileID: 2065942724}
   - component: {fileID: 2065942728}
+  - component: {fileID: 2065942729}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3214,6 +3215,34 @@ MonoBehaviour:
   offset: {x: 0, y: 2, z: -10}
   limiteEsquerdoX: -100
   limiteDireitoX: 100
+--- !u!114 &2065942729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2065942723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf8dffaf6fb94f94a8c2db1bc86d7921, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraBackgroundController
+  camadas:
+  - {fileID: 2410671940745902572, guid: 5388deeccd8534cc4a68c1602a9bde1c, type: 3}
+  - {fileID: -2429735158386619230, guid: ed47b4880f8544067aabd74896ebb010, type: 3}
+  - {fileID: -7986726448407539265, guid: 96161aa2628bc43c3a4d7cd7df3d2bc6, type: 3}
+  - {fileID: 4665387357642684164, guid: 9d49e6270b13d47119e2e0777955fe51, type: 3}
+  - {fileID: 4304075746217321220, guid: 4e4ce231b5415436e99a1b07dce64236, type: 3}
+  - {fileID: -98070244222629441, guid: f20381a30ad8f445fbb7ba5b665257f7, type: 3}
+  modoAjuste: 0
+  multiplicadorEscala: 1.02
+  deslocamento: {x: 0, y: 0}
+  parallax: 0
+  distanciaDaCamera: 30
+  ordemInicial: -20
+  incrementoOrdem: 1
+  ajusteVerticalSky: 0.35
+  escalaVerticalSky: 1.08
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
