@@ -8,6 +8,9 @@ public class CactusController : MonoBehaviour
 
         PlayerHealth saude = outro.GetComponent<PlayerHealth>();
         if (saude != null)
+        {
             saude.ReceberDano();
+            AudioManager.Instance?.TocarDano();
+        }
     }
 }

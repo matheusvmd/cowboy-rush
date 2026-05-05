@@ -14,12 +14,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float intervaloDisparo = 0.3f;
     [SerializeField] private int tirosPorCarregamento = 3;
     [SerializeField] private float tempoRecarga = 3f;
-    [SerializeField] private float velocidadeAgachado = 2.5f;
 
     private Rigidbody2D rb;
     private Animator anim;
-    private CapsuleCollider2D capsuleCol;
-    private BoxCollider2D boxCol;
 
     private bool noChao;
     private bool olhandoDireita = true;
@@ -28,11 +25,6 @@ public class PlayerController : MonoBehaviour
     private float horizontal;
     private int tirosRestantes;
     private bool recarregando;
-
-    // Agachar
-    private bool agachado;
-    private Vector2 tamanhoColNormal;
-    private Vector2 offsetColNormal;
 
     // Coyote time: permite pular levemente após sair da plataforma
     private const float TempoCoyote = 0.12f;
@@ -49,20 +41,6 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        capsuleCol = GetComponent<CapsuleCollider2D>();
-        boxCol = GetComponent<BoxCollider2D>();
-
-        if (capsuleCol != null)
-        {
-            tamanhoColNormal = capsuleCol.size;
-            offsetColNormal  = capsuleCol.offset;
-        }
-        else if (boxCol != null)
-        {
-            tamanhoColNormal = boxCol.size;
-            offsetColNormal  = boxCol.offset;
-        }
-
         RecarregarInstantaneamente();
     }
 
@@ -88,11 +66,6 @@ public class PlayerController : MonoBehaviour
         if (kb.leftArrowKey.isPressed  || kb.aKey.isPressed) horizontal = -1f;
         if (kb.rightArrowKey.isPressed || kb.dKey.isPressed) horizontal =  1f;
 
-        // Agachar (S ou seta baixo, só no chão)
-        bool querAgachar = (kb.downArrowKey.isPressed || kb.sKey.isPressed) && noChao;
-        if (querAgachar && !agachado)      Agachar();
-        else if (!querAgachar && agachado) Levantar();
-
         // Coyote time
         if (noChao)
             timerCoyote = TempoCoyote;
@@ -105,8 +78,7 @@ public class PlayerController : MonoBehaviour
         else
             timerBufferPulo -= Time.deltaTime;
 
-        // Pulo — não pula agachado
-        if (timerBufferPulo > 0f && timerCoyote > 0f && !agachado)
+        if (timerBufferPulo > 0f && timerCoyote > 0f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, forcaPulo);
             anim.SetTrigger("Pulo");
@@ -133,7 +105,6 @@ public class PlayerController : MonoBehaviour
         // Animações
         anim.SetFloat("Velocidade", Mathf.Abs(horizontal));
         anim.SetBool("NoChao",    noChao);
-        anim.SetBool("Agachado",  agachado);
     }
 
     private void FixedUpdate()
@@ -147,7 +118,7 @@ public class PlayerController : MonoBehaviour
         if (pontoChao != null)
             noChao = Physics2D.OverlapCircle(pontoChao.position, 0.15f, camadaChao);
 
-        float velX = horizontal * (agachado ? velocidadeAgachado : velocidade);
+        float velX = horizontal * velocidade;
 
         // Anti-wall-stick: cancela velocidade contra a parede quando no ar
         if (!noChao && horizontal != 0f && TocandoParede())
@@ -171,34 +142,6 @@ public class PlayerController : MonoBehaviour
             }
         }
         return false;
-    }
-
-    private void Agachar()
-    {
-        agachado = true;
-        RedimensionarColisao(0.55f);
-    }
-
-    private void Levantar()
-    {
-        agachado = false;
-        RestaurarColisao();
-    }
-
-    private void RedimensionarColisao(float fatorAltura)
-    {
-        Vector2 novoTamanho = new Vector2(tamanhoColNormal.x, tamanhoColNormal.y * fatorAltura);
-        Vector2 novoOffset  = new Vector2(offsetColNormal.x,
-            offsetColNormal.y - tamanhoColNormal.y * (1f - fatorAltura) * 0.5f);
-
-        if (capsuleCol != null) { capsuleCol.size = novoTamanho; capsuleCol.offset = novoOffset; }
-        else if (boxCol != null) { boxCol.size    = novoTamanho; boxCol.offset     = novoOffset; }
-    }
-
-    private void RestaurarColisao()
-    {
-        if (capsuleCol != null) { capsuleCol.size = tamanhoColNormal; capsuleCol.offset = offsetColNormal; }
-        else if (boxCol != null) { boxCol.size    = tamanhoColNormal; boxCol.offset     = offsetColNormal; }
     }
 
     private void TentarAtirar()

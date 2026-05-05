@@ -34,6 +34,16 @@ public class UIManager : MonoBehaviour
 
     private const int PixelsPorUnidadeCoracao = 16;
 
+    private const string TextoRegras =
+        "MOVER         A / D  ou  Seta Esq / Dir\n" +
+        "PULAR         Espaco, W ou Seta Cima\n" +
+        "ATIRAR        C, Z ou Ctrl Esquerdo\n\n" +
+        "Cavalos absorvem 1 dano — encoste para montar\n" +
+        "Cactos causam dano ao toque\n" +
+        "Inimigos patrulham e perseguem o jogador\n" +
+        "Chegue ao portal verde para completar a fase\n\n" +
+        "ESC para pausar";
+
     private static readonly string[] MascaraCoracao =
     {
         "................",
@@ -123,12 +133,22 @@ public class UIManager : MonoBehaviour
     public void MostrarRegras()
     {
         ConstruirTelasSeNecessario();
+        AtualizarTextoRegras();
         DefinirHudVisivel(false);
         if (painelMenuInicial != null) painelMenuInicial.SetActive(false);
         if (painelRegras      != null) painelRegras.SetActive(true);
         if (painelGameOver    != null) painelGameOver.SetActive(false);
         if (painelVitoria     != null) painelVitoria.SetActive(false);
         if (painelPausa       != null) painelPausa.SetActive(false);
+    }
+
+    private void AtualizarTextoRegras()
+    {
+        if (painelRegras == null) return;
+        Transform t = painelRegras.transform.Find("Texto_Regras");
+        if (t == null) return;
+        Text texto = t.GetComponent<Text>();
+        if (texto != null) texto.text = TextoRegras;
     }
 
     public void MostrarJogo()
@@ -250,11 +270,10 @@ public class UIManager : MonoBehaviour
             new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
             new Vector2(0f, 150f), new Vector2(-100f, 80f));
 
-        CriarTexto("Texto_Regras", painel.transform,
-            "Mova-se com A/D ou setas.\nPule com Espaco, W ou seta para cima.\nAgache com S ou seta para baixo.\nAtire com Z, C ou Ctrl esquerdo.\nMonte em cavalos para se proteger de 1 dano.\nEvite cactos e inimigos.\nChegue ao portal para completar a fase.\nEsc para pausar.", 22,
-            Color.white, TextAnchor.MiddleCenter,
+        CriarTexto("Texto_Regras", painel.transform, TextoRegras, 20,
+            Color.white, TextAnchor.MiddleLeft,
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            new Vector2(0f, 0f), new Vector2(680f, 340f));
+            new Vector2(0f, -10f), new Vector2(720f, 380f));
 
         botaoVoltarRegras = CriarBotao("Botao_Voltar_Regras", painel.transform, "VOLTAR", new Vector2(0f, -200f), new Vector2(230f, 56f));
         painel.SetActive(false);

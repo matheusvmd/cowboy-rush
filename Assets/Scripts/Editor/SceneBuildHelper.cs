@@ -156,6 +156,40 @@ public static class SceneBuildHelper
         Debug.Log("[CowboyRush] CameraFollow configurado!");
     }
 
+    [MenuItem("CowboyRush/Configurar Sprites Cactos")]
+    public static void ConfigurarSpritesCactos()
+    {
+        Object[] todos = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/Enviroment/Cactus_Sprite_Sheet.png");
+        Sprite sprite0 = null, sprite7 = null, sprite9 = null;
+        foreach (Object obj in todos)
+        {
+            if (obj is Sprite s)
+            {
+                if (s.name == "Cactus_Sprite_Sheet_0") sprite0 = s;
+                else if (s.name == "Cactus_Sprite_Sheet_7") sprite7 = s;
+                else if (s.name == "Cactus_Sprite_Sheet_9") sprite9 = s;
+            }
+        }
+        AtribuirSpriteCacto("Cacto",   sprite0);
+        AtribuirSpriteCacto("Cacto_2", sprite7);
+        AtribuirSpriteCacto("Cacto_3", sprite9);
+        EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+        Debug.Log($"[CowboyRush] Cactos configurados: {sprite0?.name}, {sprite7?.name}, {sprite9?.name}");
+    }
+
+    private static void AtribuirSpriteCacto(string nome, Sprite sprite)
+    {
+        if (sprite == null) { Debug.LogWarning($"[CowboyRush] Sprite nulo para {nome}"); return; }
+        GameObject go = GameObject.Find(nome);
+        if (go == null) { Debug.LogWarning($"[CowboyRush] {nome} não encontrado"); return; }
+        SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+        if (sr == null) return;
+        Undo.RecordObject(sr, "Assign Cactus Sprite");
+        sr.sprite = sprite;
+        sr.color  = Color.white;
+        EditorUtility.SetDirty(sr);
+    }
+
     [MenuItem("CowboyRush/Montar Tudo (Executar Tudo)")]
     public static void MontarTudo()
     {

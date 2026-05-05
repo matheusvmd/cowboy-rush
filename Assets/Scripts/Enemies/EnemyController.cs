@@ -16,10 +16,13 @@ public class EnemyController : MonoBehaviour
     // Raio de patrulha automático quando limites não estiverem configurados no inspector
     [SerializeField] private float limitePatrulhaAuto = 4f;
 
+    // false = sprite aponta para a esquerda por padrão (Hyena, Snake etc.)
+    [SerializeField] private bool spriteFacesDireitaPadrao = false;
+
     private Rigidbody2D rb;
     private Animator anim;
     private Transform player;
-    private bool olhandoDireita = true;
+    private bool olhandoDireita;
     private float timerAtaque;
     // Cooldown entre viragens para evitar flip rápido no mesmo frame
     private float timerVirar;
@@ -32,6 +35,16 @@ public class EnemyController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        olhandoDireita = spriteFacesDireitaPadrao;
+        AplicarOrientacao();
+    }
+
+    private void AplicarOrientacao()
+    {
+        Vector3 escala = transform.localScale;
+        float absX = Mathf.Abs(escala.x);
+        escala.x = olhandoDireita ? absX : -absX;
+        transform.localScale = escala;
     }
 
     private void Start()
@@ -102,6 +115,7 @@ public class EnemyController : MonoBehaviour
 
         if (distancia <= rangeAtaque)
         {
+            if (estadoAtual != Estado.Atacando) VirarParaPlayer();
             estadoAtual = Estado.Atacando;
             anim.SetBool("Correndo", false);
             anim.SetBool("Atacando", true);
@@ -116,6 +130,7 @@ public class EnemyController : MonoBehaviour
         }
         else if (distancia <= rangeDeteccao)
         {
+            if (estadoAtual != Estado.Perseguindo) VirarParaPlayer();
             estadoAtual = Estado.Perseguindo;
             anim.SetBool("Correndo", true);
             anim.SetBool("Atacando", false);
@@ -193,6 +208,19 @@ public class EnemyController : MonoBehaviour
         Vector3 escala = transform.localScale;
         escala.x *= -1;
         transform.localScale = escala;
+    }
+
+    private void VirarParaPlayer()
+    {
+        if (player == null) return;
+        float dir = player.position.x - transform.position.x;
+        bool deveOlharDireita = dir > 0f;
+        if (deveOlharDireita == olhandoDireita) return;
+        olhandoDireita = deveOlharDireita;
+        Vector3 escala = transform.localScale;
+        escala.x *= -1;
+        transform.localScale = escala;
+        timerVirar = 0.2f;
     }
 
     public void Morrer()
