@@ -10,11 +10,67 @@ public static class AnimatorBuilder
     {
         CriarAnimatorPlayer();
         CriarAnimatorInimigo();
+        CriarAnimatorPortal();
         CriarPrefabBala();
         CriarCacto();
         ConfigurarPlayerPrefabRef();
         EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
         Debug.Log("[CowboyRush] Animators, prefab bala e cacto criados!");
+    }
+
+    // Adiciona o parâmetro e estado Agachado a um Animator Player já existente
+    [MenuItem("CowboyRush/Atualizar Animator Player (Agachado)")]
+    public static void AdicionarAgachadoAoAnimatorExistente()
+    {
+        string path = "Assets/Animators/Player_Animator.controller";
+        var ctrl = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+        if (ctrl == null)
+        {
+            Debug.LogError("[CowboyRush] Player_Animator.controller não encontrado. Execute 'Criar Animators' primeiro.");
+            return;
+        }
+
+        // Verifica se já existe o parâmetro
+        foreach (var p in ctrl.parameters)
+            if (p.name == "Agachado") { Debug.Log("[CowboyRush] Parâmetro Agachado já existe."); return; }
+
+        ctrl.AddParameter("Agachado", AnimatorControllerParameterType.Bool);
+
+        var root = ctrl.layers[0].stateMachine;
+
+        var clipsAgachar = CriarClip("Crouch", CarregarSprites("Assets/Sprites/Player/CowBoyHolsterWeapon.png"), 0.1f);
+        SalvarClip(clipsAgachar, "Assets/Animators/Player_Crouch.anim");
+
+        var stCrouch = root.AddState("Crouch");
+        stCrouch.motion = clipsAgachar;
+
+        // Transições de qualquer estado em pé para Crouch
+        AnimatorState stIdle = null, stWalk = null;
+        foreach (var s in root.states)
+        {
+            if (s.state.name == "Idle") stIdle = s.state;
+            if (s.state.name == "Walk") stWalk = s.state;
+        }
+
+        AdicionarTransicaoAgachar(stIdle, stCrouch);
+        AdicionarTransicaoAgachar(stWalk, stCrouch);
+
+        // Crouch → Idle ao soltar
+        var tSair = stCrouch.AddTransition(stIdle ?? stCrouch);
+        tSair.hasExitTime = false; tSair.duration = 0;
+        tSair.AddCondition(AnimatorConditionMode.IfNot, 0, "Agachado");
+
+        EditorUtility.SetDirty(ctrl);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[CowboyRush] Parâmetro e estado Agachado adicionados ao Player Animator!");
+    }
+
+    static void AdicionarTransicaoAgachar(AnimatorState origem, AnimatorState destino)
+    {
+        if (origem == null) return;
+        var t = origem.AddTransition(destino);
+        t.hasExitTime = false; t.duration = 0;
+        t.AddCondition(AnimatorConditionMode.If, 0, "Agachado");
     }
 
     static void CriarAnimatorPlayer()
@@ -24,43 +80,53 @@ public static class AnimatorBuilder
 
         var ctrl = AnimatorController.CreateAnimatorControllerAtPath(path);
 
-        // Parâmetros
         ctrl.AddParameter("Velocidade", AnimatorControllerParameterType.Float);
-        ctrl.AddParameter("NoChao", AnimatorControllerParameterType.Bool);
-        ctrl.AddParameter("Pulo", AnimatorControllerParameterType.Trigger);
-        ctrl.AddParameter("Atirar", AnimatorControllerParameterType.Trigger);
-        ctrl.AddParameter("Dano", AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("NoChao",     AnimatorControllerParameterType.Bool);
+        ctrl.AddParameter("Agachado",   AnimatorControllerParameterType.Bool);
+        ctrl.AddParameter("Pulo",       AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("Atirar",     AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("Dano",       AnimatorControllerParameterType.Trigger);
 
         var root = ctrl.layers[0].stateMachine;
 
-        // Sprites do cowboy
-        var clipsIdle   = CriarClip("Idle",   CarregarSprites("Assets/Sprites/Player/CowBoyIdle.png"),   0.1f);
-        var clipsWalk   = CriarClip("Walk",   CarregarSprites("Assets/Sprites/Player/CowBoyWalking.png"), 0.08f);
-        var clipsShoot  = CriarClip("Shoot",  CarregarSprites("Assets/Sprites/Player/CowBoyShoot.png"),  0.08f);
-        var clipsHurt   = CriarClip("Hurt",   CarregarSprites("Assets/Sprites/Player/CowBoyIdle.png"),   0.1f);
+        var clipsIdle   = CriarClip("Idle",   CarregarSprites("Assets/Sprites/Player/CowBoyIdle.png"),            0.1f);
+        var clipsWalk   = CriarClip("Walk",   CarregarSprites("Assets/Sprites/Player/CowBoyWalking.png"),         0.08f);
+        var clipsShoot  = CriarClip("Shoot",  CarregarSprites("Assets/Sprites/Player/CowBoyShoot.png"),           0.08f);
+        var clipsHurt   = CriarClip("Hurt",   CarregarSprites("Assets/Sprites/Player/CowBoyIdle.png"),            0.1f);
+        var clipsCrouch = CriarClip("Crouch", CarregarSprites("Assets/Sprites/Player/CowBoyHolsterWeapon.png"),   0.1f);
 
-        // Salva clips
-        SalvarClip(clipsIdle, "Assets/Animators/Player_Idle.anim");
-        SalvarClip(clipsWalk, "Assets/Animators/Player_Walk.anim");
-        SalvarClip(clipsShoot, "Assets/Animators/Player_Shoot.anim");
-        SalvarClip(clipsHurt, "Assets/Animators/Player_Hurt.anim");
+        SalvarClip(clipsIdle,   "Assets/Animators/Player_Idle.anim");
+        SalvarClip(clipsWalk,   "Assets/Animators/Player_Walk.anim");
+        SalvarClip(clipsShoot,  "Assets/Animators/Player_Shoot.anim");
+        SalvarClip(clipsHurt,   "Assets/Animators/Player_Hurt.anim");
+        SalvarClip(clipsCrouch, "Assets/Animators/Player_Crouch.anim");
 
-        // Estados
-        var stIdle  = root.AddState("Idle");  stIdle.motion  = clipsIdle;
-        var stWalk  = root.AddState("Walk");  stWalk.motion  = clipsWalk;
-        var stShoot = root.AddState("Shoot"); stShoot.motion = clipsShoot;
-        var stHurt  = root.AddState("Hurt");  stHurt.motion  = clipsHurt;
+        var stIdle   = root.AddState("Idle");   stIdle.motion   = clipsIdle;
+        var stWalk   = root.AddState("Walk");   stWalk.motion   = clipsWalk;
+        var stShoot  = root.AddState("Shoot");  stShoot.motion  = clipsShoot;
+        var stHurt   = root.AddState("Hurt");   stHurt.motion   = clipsHurt;
+        var stCrouch = root.AddState("Crouch"); stCrouch.motion = clipsCrouch;
 
         root.defaultState = stIdle;
 
-        // Transições Idle ↔ Walk
+        // Idle ↔ Walk
         var t1 = stIdle.AddTransition(stWalk);
         t1.hasExitTime = false; t1.duration = 0;
         t1.AddCondition(AnimatorConditionMode.Greater, 0.1f, "Velocidade");
+        t1.AddCondition(AnimatorConditionMode.IfNot, 0, "Agachado");
 
         var t2 = stWalk.AddTransition(stIdle);
         t2.hasExitTime = false; t2.duration = 0;
         t2.AddCondition(AnimatorConditionMode.Less, 0.1f, "Velocidade");
+
+        // Idle/Walk → Crouch
+        AdicionarTransicaoAgachar(stIdle, stCrouch);
+        AdicionarTransicaoAgachar(stWalk, stCrouch);
+
+        // Crouch → Idle
+        var tCrouchSair = stCrouch.AddTransition(stIdle);
+        tCrouchSair.hasExitTime = false; tCrouchSair.duration = 0;
+        tCrouchSair.AddCondition(AnimatorConditionMode.IfNot, 0, "Agachado");
 
         // Any State → Shoot
         var tShoot = root.AddAnyStateTransition(stShoot);
@@ -78,7 +144,6 @@ public static class AnimatorBuilder
 
         AssetDatabase.SaveAssets();
 
-        // Aplica no Player
         var player = GameObject.Find("Player");
         if (player != null)
         {
@@ -86,7 +151,7 @@ public static class AnimatorBuilder
             if (anim != null) anim.runtimeAnimatorController = ctrl;
         }
 
-        Debug.Log("[CowboyRush] Animator Player criado: " + path);
+        Debug.Log("[CowboyRush] Animator Player criado com Agachado: " + path);
     }
 
     static void CriarAnimatorInimigo()
@@ -97,9 +162,9 @@ public static class AnimatorBuilder
 
         ctrl.AddParameter("Correndo", AnimatorControllerParameterType.Bool);
         ctrl.AddParameter("Atacando", AnimatorControllerParameterType.Bool);
-        ctrl.AddParameter("Ataque", AnimatorControllerParameterType.Trigger);
-        ctrl.AddParameter("Dano", AnimatorControllerParameterType.Trigger);
-        ctrl.AddParameter("Morte", AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("Ataque",   AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("Dano",     AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("Morte",    AnimatorControllerParameterType.Trigger);
 
         var root = ctrl.layers[0].stateMachine;
 
@@ -123,7 +188,6 @@ public static class AnimatorBuilder
 
         root.defaultState = stIdle;
 
-        // Idle ↔ Walk
         var tw1 = stIdle.AddTransition(stWalk);
         tw1.hasExitTime = false; tw1.duration = 0;
         tw1.AddCondition(AnimatorConditionMode.If, 0, "Correndo");
@@ -132,21 +196,18 @@ public static class AnimatorBuilder
         tw2.hasExitTime = false; tw2.duration = 0;
         tw2.AddCondition(AnimatorConditionMode.IfNot, 0, "Correndo");
 
-        // Any → Attack trigger
         var ta = root.AddAnyStateTransition(stAttack);
         ta.hasExitTime = false; ta.duration = 0;
         ta.AddCondition(AnimatorConditionMode.If, 0, "Ataque");
         var taExit = stAttack.AddTransition(stIdle);
         taExit.hasExitTime = true; taExit.exitTime = 1f; taExit.duration = 0;
 
-        // Any → Hurt trigger
         var th = root.AddAnyStateTransition(stHurt);
         th.hasExitTime = false; th.duration = 0;
         th.AddCondition(AnimatorConditionMode.If, 0, "Dano");
         var thExit = stHurt.AddTransition(stIdle);
         thExit.hasExitTime = true; thExit.exitTime = 1f; thExit.duration = 0;
 
-        // Any → Death trigger
         var td = root.AddAnyStateTransition(stDeath);
         td.hasExitTime = false; td.duration = 0;
         td.AddCondition(AnimatorConditionMode.If, 0, "Morte");
@@ -163,6 +224,79 @@ public static class AnimatorBuilder
         Debug.Log("[CowboyRush] Animator Inimigo criado: " + path);
     }
 
+    // Cria Animator do Portal usando sprites do Elthen se disponíveis
+    public static void CriarAnimatorPortal()
+    {
+        string pastaPortal = "Assets/Sprites/Portal";
+        if (!AssetDatabase.IsValidFolder(pastaPortal))
+        {
+            Debug.Log("[CowboyRush] Pasta Assets/Sprites/Portal não encontrada. Baixe as sprites do Elthen e coloque lá.");
+            return;
+        }
+
+        string path = "Assets/Animators/Portal_Animator.controller";
+        var ctrl = AnimatorController.CreateAnimatorControllerAtPath(path);
+        ctrl.AddParameter("Entrar", AnimatorControllerParameterType.Trigger);
+
+        var root = ctrl.layers[0].stateMachine;
+
+        // Tenta carregar sprites por nome comum dos packs do Elthen
+        var spritesIdle     = BuscarSpritesPortal(pastaPortal, "idle");
+        var spritesAparecer = BuscarSpritesPortal(pastaPortal, "appear", "emerge", "open");
+        var spritesEnter    = BuscarSpritesPortal(pastaPortal, "disappear", "enter", "close");
+
+        var clipIdle     = CriarClip("Portal_Idle",     spritesIdle.Length     > 0 ? spritesIdle     : spritesIdle,     0.1f);
+        var clipAparecer = CriarClip("Portal_Aparecer", spritesAparecer.Length > 0 ? spritesAparecer : spritesIdle,     0.07f);
+        var clipEntrar   = CriarClip("Portal_Entrar",   spritesEnter.Length    > 0 ? spritesEnter    : spritesIdle,     0.07f);
+
+        SalvarClip(clipIdle,     "Assets/Animators/Portal_Idle.anim");
+        SalvarClip(clipAparecer, "Assets/Animators/Portal_Aparecer.anim");
+        SalvarClip(clipEntrar,   "Assets/Animators/Portal_Entrar.anim");
+
+        var stIdle     = root.AddState("Idle");     stIdle.motion     = clipIdle;
+        var stAparecer = root.AddState("Aparecer"); stAparecer.motion = clipAparecer;
+        var stEntrar   = root.AddState("Entrar");   stEntrar.motion   = clipEntrar;
+
+        root.defaultState = stAparecer;
+
+        // Aparecer → Idle ao terminar
+        var tApp = stAparecer.AddTransition(stIdle);
+        tApp.hasExitTime = true; tApp.exitTime = 1f; tApp.duration = 0;
+
+        // Any → Entrar quando player entra
+        var tEnter = root.AddAnyStateTransition(stEntrar);
+        tEnter.hasExitTime = false; tEnter.duration = 0;
+        tEnter.AddCondition(AnimatorConditionMode.If, 0, "Entrar");
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("[CowboyRush] Animator Portal criado: " + path);
+    }
+
+    static Sprite[] BuscarSpritesPortal(string pasta, params string[] palavrasChave)
+    {
+        var guids = AssetDatabase.FindAssets("t:Texture2D", new[] { pasta });
+        foreach (var guid in guids)
+        {
+            string p = AssetDatabase.GUIDToAssetPath(guid);
+            string lower = p.ToLower();
+            foreach (var kw in palavrasChave)
+            {
+                if (lower.Contains(kw))
+                {
+                    var sprites = CarregarSprites(p);
+                    if (sprites.Length > 0) return sprites;
+                }
+            }
+        }
+        // Fallback: retorna quaisquer sprites da pasta
+        foreach (var guid in guids)
+        {
+            var sprites = CarregarSprites(AssetDatabase.GUIDToAssetPath(guid));
+            if (sprites.Length > 0) return sprites;
+        }
+        return new Sprite[0];
+    }
+
     static void CriarPrefabBala()
     {
         System.IO.Directory.CreateDirectory("Assets/Prefabs");
@@ -171,7 +305,6 @@ public static class AnimatorBuilder
         bala.tag = "Bala";
 
         var sr = bala.AddComponent<SpriteRenderer>();
-        // Usa um sprite simples para a bala (amarelo)
         sr.sprite = CarregarSpritePixel();
         sr.color = Color.yellow;
         sr.sortingOrder = 10;
@@ -191,7 +324,6 @@ public static class AnimatorBuilder
         PrefabUtility.SaveAsPrefabAsset(bala, prefabPath);
         Object.DestroyImmediate(bala);
 
-        // Conecta o prefab no PlayerController
         var player = GameObject.Find("Player");
         if (player != null)
         {
@@ -215,11 +347,7 @@ public static class AnimatorBuilder
     {
         var assets = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/pixel_branco.png");
         foreach (var asset in assets)
-        {
-            if (asset is Sprite sprite)
-                return sprite;
-        }
-
+            if (asset is Sprite sprite) return sprite;
         return null;
     }
 
@@ -240,7 +368,6 @@ public static class AnimatorBuilder
 
         cacto.AddComponent<CactusController>();
 
-        // Segundo cacto
         var cacto2 = Object.Instantiate(cacto);
         cacto2.name = "Cacto_2";
         cacto2.transform.position = new Vector3(8, -3.5f, 0);
@@ -251,7 +378,6 @@ public static class AnimatorBuilder
 
     static void ConfigurarPlayerPrefabRef()
     {
-        // Garante que PontoChao está referenciado no PlayerController
         var player = GameObject.Find("Player");
         if (player == null) return;
         var ctrl = player.GetComponent<PlayerController>();
@@ -264,7 +390,6 @@ public static class AnimatorBuilder
         so.ApplyModifiedProperties();
     }
 
-    // Cria AnimationClip com sprites de um spritesheet
     static AnimationClip CriarClip(string nome, Sprite[] sprites, float frameDuration)
     {
         var clip = new AnimationClip();
@@ -273,25 +398,13 @@ public static class AnimatorBuilder
 
         if (sprites == null || sprites.Length == 0) return clip;
 
-        var editorCurveBinding = EditorCurveBinding.PPtrCurve("", typeof(SpriteRenderer), "m_Sprite");
-
+        var binding = EditorCurveBinding.PPtrCurve("", typeof(SpriteRenderer), "m_Sprite");
         var keyframes = new ObjectReferenceKeyframe[sprites.Length + 1];
         for (int i = 0; i < sprites.Length; i++)
-        {
-            keyframes[i] = new ObjectReferenceKeyframe
-            {
-                time = i * frameDuration,
-                value = sprites[i]
-            };
-        }
-        // Repete último frame para evitar salto
-        keyframes[sprites.Length] = new ObjectReferenceKeyframe
-        {
-            time = sprites.Length * frameDuration,
-            value = sprites[sprites.Length - 1]
-        };
+            keyframes[i] = new ObjectReferenceKeyframe { time = i * frameDuration, value = sprites[i] };
+        keyframes[sprites.Length] = new ObjectReferenceKeyframe { time = sprites.Length * frameDuration, value = sprites[sprites.Length - 1] };
 
-        AnimationUtility.SetObjectReferenceCurve(clip, editorCurveBinding, keyframes);
+        AnimationUtility.SetObjectReferenceCurve(clip, binding, keyframes);
 
         var settings = AnimationUtility.GetAnimationClipSettings(clip);
         settings.loopTime = true;

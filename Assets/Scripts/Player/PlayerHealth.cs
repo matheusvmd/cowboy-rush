@@ -8,6 +8,7 @@ public class PlayerHealth : MonoBehaviour
     private SpriteRenderer sr;
     private bool invencivel;
     private float timerInvencivel;
+    private HorseController cavaloDono;
 
     private void Awake()
     {
@@ -20,7 +21,6 @@ public class PlayerHealth : MonoBehaviour
         if (!invencivel) return;
 
         timerInvencivel -= Time.deltaTime;
-        // pisca para indicar invencibilidade
         sr.enabled = Mathf.Sin(timerInvencivel * 20f) > 0;
 
         if (timerInvencivel <= 0f)
@@ -30,9 +30,19 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    public void DefinirCavalo(HorseController cavalo) => cavaloDono = cavalo;
+
     public void ReceberDano()
     {
         if (invencivel) return;
+
+        // Cavalo absorve o dano e some
+        if (cavaloDono != null)
+        {
+            cavaloDono.AbsorverDano();
+            AudioManager.Instance?.TocarDano();
+            return;
+        }
 
         invencivel = true;
         timerInvencivel = tempoInvencivel;
@@ -40,6 +50,8 @@ public class PlayerHealth : MonoBehaviour
         if (anim != null)
             anim.SetTrigger("Dano");
 
+        AudioManager.Instance?.TocarDano();
+        EfeitosVisuais.SpawnBurst(transform.position, new Color(1f, 0.2f, 0.2f), 10, 3f, 0.45f);
         GameManager.Instance?.PerdeuVida();
     }
 

@@ -11,16 +11,19 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float intervaloAtaque = 1.5f;
     [SerializeField] private Transform limiteEsquerdo;
     [SerializeField] private Transform limiteDireito;
-
-    // Verifica borda para não cair do chão
     [SerializeField] private LayerMask camadaChao;
     [SerializeField] private float distanciaBorda = 0.4f;
+    // Raio de patrulha automático quando limites não estiverem configurados no inspector
+    [SerializeField] private float limitePatrulhaAuto = 4f;
 
     private Rigidbody2D rb;
     private Animator anim;
     private Transform player;
     private bool olhandoDireita = true;
     private float timerAtaque;
+    // Cooldown entre viragens para evitar flip rápido no mesmo frame
+    private float timerVirar;
+    private Vector2 posicaoInicial;
 
     private enum Estado { Patrulha, Perseguindo, Atacando, Morto }
     private Estado estadoAtual = Estado.Patrulha;
@@ -33,19 +36,34 @@ public class EnemyController : MonoBehaviour
 
     private void Start()
     {
+        posicaoInicial = transform.position;
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
+        {
             player = playerObj.transform;
+            // Impede colisão física entre inimigo e player — dano é tratado via trigger
+            IgnorarColisaoComPlayer(playerObj);
+        }
 
-        // Descobre layer do chão automaticamente se não setado
         if (camadaChao == 0)
             camadaChao = LayerMask.GetMask("Chao");
+    }
+
+    private void IgnorarColisaoComPlayer(GameObject playerObj)
+    {
+        Collider2D[] meusColliders   = GetComponents<Collider2D>();
+        Collider2D[] collidersPlayer = playerObj.GetComponents<Collider2D>();
+        foreach (var meu in meusColliders)
+            foreach (var dono in collidersPlayer)
+                if (!meu.isTrigger && !dono.isTrigger)
+                    Physics2D.IgnoreCollision(meu, dono, true);
     }
 
     private void Update()
     {
         if (estadoAtual == Estado.Morto) return;
-        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo)
+        if (GameManager.Instance != null && (!GameManager.Instance.JogoAtivo || GameManager.Instance.EstaEmPausa))
         {
             anim.SetBool("Correndo", false);
             anim.SetBool("Atacando", false);
@@ -53,13 +71,14 @@ public class EnemyController : MonoBehaviour
         }
 
         timerAtaque -= Time.deltaTime;
+        timerVirar  -= Time.deltaTime;
         AtualizarEstado();
     }
 
     private void FixedUpdate()
     {
         if (estadoAtual == Estado.Morto) return;
-        if (GameManager.Instance != null && !GameManager.Instance.JogoAtivo)
+        if (GameManager.Instance != null && (!GameManager.Instance.JogoAtivo || GameManager.Instance.EstaEmPausa))
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -67,14 +86,10 @@ public class EnemyController : MonoBehaviour
 
         switch (estadoAtual)
         {
-            case Estado.Patrulha:
-                Patrulhar();
-                break;
-            case Estado.Perseguindo:
-                Perseguir();
-                break;
+            case Estado.Patrulha:    Patrulhar();  break;
+            case Estado.Perseguindo: Perseguir();  break;
             case Estado.Atacando:
-                rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
                 break;
         }
     }
@@ -105,30 +120,44 @@ public class EnemyController : MonoBehaviour
             anim.SetBool("Correndo", true);
             anim.SetBool("Atacando", false);
         }
-        else
+        else if (estadoAtual != Estado.Patrulha)
         {
-            estadoAtual = Estado.Patrulha;
-            anim.SetBool("Correndo", false);
-            anim.SetBool("Atacando", false);
+            // Histerese: só volta a patrulhar quando o player está bem mais longe,
+            // evitando jitter na borda exata do range de detecção
+            if (distancia > rangeDeteccao * 1.35f)
+            {
+                estadoAtual = Estado.Patrulha;
+                anim.SetBool("Correndo", false);
+                anim.SetBool("Atacando", false);
+            }
         }
     }
 
     private void Patrulhar()
     {
-        // Verifica limite de patrulha
-        if (limiteEsquerdo != null && limiteDireito != null)
+        // Usa limites do inspector ou limites automáticos pela posição inicial
+        float limDir = limiteDireito  != null ? limiteDireito.position.x  : posicaoInicial.x + limitePatrulhaAuto;
+        float limEsq = limiteEsquerdo != null ? limiteEsquerdo.position.x : posicaoInicial.x - limitePatrulhaAuto;
+
+        bool deveVirar = false;
+
+        if ( olhandoDireita && transform.position.x >= limDir) deveVirar = true;
+        if (!olhandoDireita && transform.position.x <= limEsq) deveVirar = true;
+
+        // Verifica borda à frente só se ainda não vai virar pelos limites
+        if (!deveVirar && timerVirar <= 0f && TendoCairDaBorda())
+            deveVirar = true;
+
+        // Cooldown de virada impede flip rápido no mesmo ponto
+        if (deveVirar && timerVirar <= 0f)
         {
-            if (olhandoDireita && transform.position.x >= limiteDireito.position.x)
-                Virar();
-            else if (!olhandoDireita && transform.position.x <= limiteEsquerdo.position.x)
-                Virar();
+            Virar();
+            timerVirar = 0.4f;
         }
 
-        // Verifica borda do chão à frente para não cair
-        if (TendoCairDaBorda())
-            Virar();
-
-        rb.linearVelocity = new Vector2(olhandoDireita ? velocidadePatrulha : -velocidadePatrulha, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2(
+            olhandoDireita ? velocidadePatrulha : -velocidadePatrulha,
+            rb.linearVelocity.y);
     }
 
     private void Perseguir()
@@ -136,17 +165,20 @@ public class EnemyController : MonoBehaviour
         if (player == null) return;
 
         float dir = player.position.x - transform.position.x;
-        if (dir > 0 && !olhandoDireita) Virar();
-        else if (dir < 0 && olhandoDireita) Virar();
 
-        // Não persegue se vai cair
-        if (!TendoCairDaBorda())
-            rb.linearVelocity = new Vector2(Mathf.Sign(dir) * velocidadePerseguicao, rb.linearVelocity.y);
-        else
-            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+        // Vira na direção do player com cooldown para não ficar chacoalhando
+        if (timerVirar <= 0f)
+        {
+            if (dir > 0.1f && !olhandoDireita)      { Virar(); timerVirar = 0.2f; }
+            else if (dir < -0.1f && olhandoDireita) { Virar(); timerVirar = 0.2f; }
+        }
+
+        // Persegue diretamente sem verificar borda (pode cair para alcançar o player)
+        rb.linearVelocity = new Vector2(
+            Mathf.Sign(dir) * velocidadePerseguicao,
+            rb.linearVelocity.y);
     }
 
-    // Verifica se há chão à frente antes de andar
     private bool TendoCairDaBorda()
     {
         float direcaoX = olhandoDireita ? distanciaBorda : -distanciaBorda;
