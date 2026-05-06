@@ -187,6 +187,7 @@ public class PlayerController : MonoBehaviour
     {
         recarregando = true;
         timerRecarga = tempoRecarga;
+        AudioManager.Instance?.TocarRecarga();
         AtualizarHudMunicao();
     }
 
