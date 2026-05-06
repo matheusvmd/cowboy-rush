@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private Image[] iconesVida;
     [SerializeField] private GameObject painelMunicao;
+    [SerializeField] private Image iconeMunicao;
     [SerializeField] private Text textoMunicao;
     [SerializeField] private Text textoRecarga;
     [SerializeField] private GameObject painelGameOver;
@@ -16,6 +17,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject painelRegras;
     [SerializeField] private GameObject painelVitoria;
     [SerializeField] private GameObject painelPausa;
+    [SerializeField] private Image flashDano;
     [SerializeField] private Button botaoComecar;
     [SerializeField] private Button botaoRegras;
     [SerializeField] private Button botaoVoltarRegras;
@@ -24,15 +26,21 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button botaoMenuVitoria;
     [SerializeField] private Sprite spriteVidaCheia;
     [SerializeField] private Sprite spriteVidaVazia;
+    [SerializeField] private Sprite spriteMunicao;
     [SerializeField] private Color corVidaCheia = new Color(0.92f, 0.03f, 0.09f, 1f);
     [SerializeField] private Color corVidaBrilho = new Color(1f, 0.38f, 0.46f, 1f);
     [SerializeField] private Color corVidaBorda = new Color(0.34f, 0.01f, 0.03f, 1f);
     [SerializeField] private Color corVidaVazia = new Color(0.34f, 0.01f, 0.03f, 0.45f);
+    [SerializeField] private Color corMunicaoNormal = new Color(1f, 0.86f, 0.42f, 1f);
+    [SerializeField] private Color corMunicaoBaixa = new Color(1f, 0.42f, 0.24f, 1f);
+    [SerializeField] private Color corFlashDanoTela = new Color(1f, 0.05f, 0.02f, 0.45f);
 
     private Button botaoRetomarPausa;
     private Button botaoMenuPausaBtn;
+    private float alphaFlashDano;
 
     private const int PixelsPorUnidadeCoracao = 16;
+    private const int PixelsPorUnidadeMunicao = 16;
 
     private const string TextoRegras =
         "MOVER         A / D  ou  Seta Esq / Dir\n" +
@@ -64,6 +72,7 @@ public class UIManager : MonoBehaviour
 
     private Sprite spriteVidaCheiaGerado;
     private Sprite spriteVidaVaziaGerado;
+    private Sprite spriteMunicaoGerado;
     private Font fontePadrao;
 
     private void Awake()
@@ -86,6 +95,12 @@ public class UIManager : MonoBehaviour
         if (Instance == this) Instance = null;
         LimparSpriteGerado(spriteVidaCheiaGerado);
         LimparSpriteGerado(spriteVidaVaziaGerado);
+        LimparSpriteGerado(spriteMunicaoGerado);
+    }
+
+    private void Update()
+    {
+        AtualizarFlashDano();
     }
 
     // ── Atualização de HUD ──────────────────────────────────────────────────
@@ -109,7 +124,12 @@ public class UIManager : MonoBehaviour
     {
         ConstruirTelasSeNecessario();
         if (textoMunicao != null)
-            textoMunicao.text = "Balas: " + tirosRestantes + "/" + tirosMaximos;
+        {
+            textoMunicao.text = tirosRestantes.ToString();
+            textoMunicao.color = estaRecarregando || tirosRestantes <= 1 ? corMunicaoBaixa : corMunicaoNormal;
+        }
+        if (iconeMunicao != null)
+            iconeMunicao.color = estaRecarregando ? new Color(1f, 1f, 1f, 0.55f) : Color.white;
         if (textoRecarga == null) return;
         textoRecarga.gameObject.SetActive(estaRecarregando);
         if (estaRecarregando)
@@ -231,6 +251,12 @@ public class UIManager : MonoBehaviour
             painelPausa = existente != null ? existente.gameObject : CriarTelaPausa();
         }
 
+        if (flashDano == null)
+        {
+            Transform existente = transform.Find("Flash_Dano");
+            flashDano = existente != null ? existente.GetComponent<Image>() : CriarFlashDano();
+        }
+
         if (painelMunicao == null)
         {
             Transform existente = transform.Find("Painel_Municao");
@@ -340,6 +366,23 @@ public class UIManager : MonoBehaviour
         return painel;
     }
 
+    private Image CriarFlashDano()
+    {
+        var flashGO = new GameObject("Flash_Dano", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        flashGO.transform.SetParent(transform, false);
+        RectTransform rect = flashGO.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image imagem = flashGO.GetComponent<Image>();
+        imagem.color = Color.clear;
+        imagem.raycastTarget = false;
+        flashGO.SetActive(false);
+        return imagem;
+    }
+
     private GameObject CriarPainelMunicao()
     {
         var painel = new GameObject("Painel_Municao", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -350,19 +393,33 @@ public class UIManager : MonoBehaviour
         rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(1f, 0f);
         rect.anchoredPosition = new Vector2(-20f, 20f);
-        rect.sizeDelta = new Vector2(230f, 72f);
+        rect.sizeDelta = new Vector2(190f, 76f);
 
         Image fundo = painel.GetComponent<Image>();
         fundo.color = new Color(0.04f, 0.03f, 0.02f, 0.72f);
         fundo.raycastTarget = false;
 
-        textoMunicao = CriarTexto("Texto_Municao", painel.transform, "Balas: 3/3", 24,
-            new Color(1f, 0.86f, 0.42f, 1f), TextAnchor.MiddleRight,
-            Vector2.zero, Vector2.one, new Vector2(-16f, 12f), new Vector2(-28f, -20f));
+        GameObject iconeGO = new GameObject("Icone_Municao", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        iconeGO.transform.SetParent(painel.transform, false);
+        RectTransform iconeRect = iconeGO.GetComponent<RectTransform>();
+        iconeRect.anchorMin = new Vector2(0f, 0.5f);
+        iconeRect.anchorMax = new Vector2(0f, 0.5f);
+        iconeRect.pivot = new Vector2(0.5f, 0.5f);
+        iconeRect.anchoredPosition = new Vector2(38f, 10f);
+        iconeRect.sizeDelta = new Vector2(46f, 46f);
+        iconeMunicao = iconeGO.GetComponent<Image>();
+        iconeMunicao.sprite = SpriteMunicao;
+        iconeMunicao.preserveAspect = true;
+        iconeMunicao.raycastTarget = false;
+
+        textoMunicao = CriarTexto("Texto_Municao", painel.transform, "3", 30,
+            corMunicaoNormal, TextAnchor.MiddleLeft,
+            new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+            new Vector2(86f, 10f), new Vector2(70f, 42f));
 
         textoRecarga = CriarTexto("Texto_Recarga", painel.transform, "Recarregando: 3s", 18,
             Color.white, TextAnchor.MiddleRight,
-            Vector2.zero, Vector2.one, new Vector2(-16f, -18f), new Vector2(-28f, -32f));
+            Vector2.zero, Vector2.one, new Vector2(-12f, -20f), new Vector2(-24f, -34f));
         textoRecarga.gameObject.SetActive(false);
 
         return painel;
@@ -487,6 +544,17 @@ public class UIManager : MonoBehaviour
 
     private Sprite SpriteVidaCheia => spriteVidaCheia != null ? spriteVidaCheia : spriteVidaCheiaGerado;
     private Sprite SpriteVidaVazia => spriteVidaVazia != null ? spriteVidaVazia : spriteVidaVaziaGerado;
+    private Sprite SpriteMunicao
+    {
+        get
+        {
+            if (spriteMunicao != null)
+                return spriteMunicao;
+            if (spriteMunicaoGerado == null)
+                spriteMunicaoGerado = CriarSpriteMunicao();
+            return spriteMunicaoGerado;
+        }
+    }
 
     private void GarantirEventSystem()
     {
@@ -517,6 +585,17 @@ public class UIManager : MonoBehaviour
 
     private void ColetarReferenciasPainelMunicao()
     {
+        if (iconeMunicao == null)
+        {
+            Transform t = painelMunicao.transform.Find("Icone_Municao");
+            if (t != null) iconeMunicao = t.GetComponent<Image>();
+        }
+        if (iconeMunicao != null)
+        {
+            iconeMunicao.sprite = SpriteMunicao;
+            iconeMunicao.preserveAspect = true;
+            iconeMunicao.raycastTarget = false;
+        }
         if (textoMunicao == null)
         {
             Transform t = painelMunicao.transform.Find("Texto_Municao");
@@ -527,6 +606,31 @@ public class UIManager : MonoBehaviour
             Transform t = painelMunicao.transform.Find("Texto_Recarga");
             if (t != null) textoRecarga = t.GetComponent<Text>();
         }
+    }
+
+    public void MostrarFlashDano(float intensidade = 1f)
+    {
+        ConstruirTelasSeNecessario();
+        alphaFlashDano = Mathf.Clamp01(Mathf.Max(alphaFlashDano, corFlashDanoTela.a * intensidade));
+        if (flashDano != null)
+        {
+            flashDano.gameObject.SetActive(true);
+            flashDano.transform.SetAsLastSibling();
+        }
+    }
+
+    private void AtualizarFlashDano()
+    {
+        if (flashDano == null || alphaFlashDano <= 0f)
+            return;
+
+        alphaFlashDano = Mathf.MoveTowards(alphaFlashDano, 0f, 1.8f * Time.unscaledDeltaTime);
+        Color cor = corFlashDanoTela;
+        cor.a = alphaFlashDano;
+        flashDano.color = cor;
+
+        if (alphaFlashDano <= 0f)
+            flashDano.gameObject.SetActive(false);
     }
 
     private void PrepararSpritesVida()
@@ -556,6 +660,68 @@ public class UIManager : MonoBehaviour
             new Vector2(0.5f, 0.5f), PixelsPorUnidadeCoracao, 0, SpriteMeshType.FullRect);
         sprite.name = textura.name;
         return sprite;
+    }
+
+    private Sprite CriarSpriteMunicao()
+    {
+        const int tamanho = 32;
+        var textura = new Texture2D(tamanho, tamanho, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp,
+            name = "Icone_Municao"
+        };
+
+        Color transparente = Color.clear;
+        for (int y = 0; y < tamanho; y++)
+            for (int x = 0; x < tamanho; x++)
+                textura.SetPixel(x, y, transparente);
+
+        DesenharCartucho(textura, 9, 23);
+        DesenharCartucho(textura, 21, 21);
+        DesenharCartucho(textura, 12, 10);
+        DesenharCartucho(textura, 24, 8);
+
+        textura.Apply();
+        var sprite = Sprite.Create(textura, new Rect(0, 0, tamanho, tamanho),
+            new Vector2(0.5f, 0.5f), PixelsPorUnidadeMunicao, 0, SpriteMeshType.FullRect);
+        sprite.name = textura.name;
+        return sprite;
+    }
+
+    private void DesenharCartucho(Texture2D textura, int centroX, int centroY)
+    {
+        Color borda = new Color(0.25f, 0.13f, 0.05f, 1f);
+        Color sombra = new Color(0.47f, 0.28f, 0.11f, 1f);
+        Color corpo = new Color(0.86f, 0.66f, 0.34f, 1f);
+        Color brilho = new Color(1f, 0.88f, 0.56f, 1f);
+
+        for (int y = -6; y <= 6; y++)
+        {
+            for (int x = -6; x <= 6; x++)
+            {
+                float distancia = Mathf.Sqrt(x * x + y * y);
+                if (distancia > 6.1f)
+                    continue;
+
+                Color cor = corpo;
+                if (distancia > 4.9f) cor = borda;
+                else if (x > 1 || y < -2) cor = sombra;
+                else if (x < -1 && y > 1) cor = brilho;
+
+                textura.SetPixel(centroX + x, centroY + y, cor);
+            }
+        }
+
+        for (int y = -2; y <= 2; y++)
+        {
+            for (int x = -2; x <= 2; x++)
+            {
+                if (x * x + y * y > 5)
+                    continue;
+                textura.SetPixel(centroX + x, centroY + y, new Color(0.36f, 0.2f, 0.08f, 1f));
+            }
+        }
     }
 
     private void LimparSpriteGerado(Sprite sprite)

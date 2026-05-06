@@ -60,6 +60,7 @@ public class BulletController : MonoBehaviour
                 saude.ReceberDano(dano);
         }
 
+        EfeitosVisuais.SpawnImpactoBala(transform.position);
         Destroy(gameObject);
     }
 
@@ -68,6 +69,8 @@ public class BulletController : MonoBehaviour
         if (colisao.collider.CompareTag("Player") || colisao.collider.CompareTag("Bala"))
             return;
 
+        Vector3 pontoImpacto = colisao.contactCount > 0 ? colisao.GetContact(0).point : (Vector2)transform.position;
+        EfeitosVisuais.SpawnImpactoBala(pontoImpacto);
         Destroy(gameObject);
     }
 }

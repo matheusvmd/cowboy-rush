@@ -1,16 +1,25 @@
 using UnityEngine;
+using System.Collections;
 
 public class EnemyHealth : MonoBehaviour
 {
     [SerializeField] private int vidaMaxima = 3;
+    [SerializeField] private Color corFlashDano = new Color(1f, 0.48f, 0.22f, 1f);
+    [SerializeField] private float duracaoFlashDano = 0.08f;
 
     private int vidaAtual;
     private Animator anim;
+    private SpriteRenderer spriteRenderer;
+    private Color corOriginal;
+    private Coroutine rotinaFlash;
 
     private void Awake()
     {
         vidaAtual = vidaMaxima;
         anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+            corOriginal = spriteRenderer.color;
     }
 
     public void ReceberDano(int dano)
@@ -21,6 +30,8 @@ public class EnemyHealth : MonoBehaviour
             anim.SetTrigger("Dano");
 
         EfeitosVisuais.SpawnBurst(transform.position, new Color(1f, 0.5f, 0f), 6, 2.5f, 0.35f);
+        CameraFollow.Tremer(0.05f, 0.08f);
+        FlashDano();
 
         if (vidaAtual <= 0)
         {
@@ -33,5 +44,25 @@ public class EnemyHealth : MonoBehaviour
             else
                 Destroy(gameObject);
         }
+    }
+
+    private void FlashDano()
+    {
+        if (spriteRenderer == null)
+            return;
+
+        if (rotinaFlash != null)
+            StopCoroutine(rotinaFlash);
+
+        rotinaFlash = StartCoroutine(ExecutarFlashDano());
+    }
+
+    private IEnumerator ExecutarFlashDano()
+    {
+        spriteRenderer.color = corFlashDano;
+        yield return new WaitForSeconds(duracaoFlashDano);
+        if (spriteRenderer != null)
+            spriteRenderer.color = corOriginal;
+        rotinaFlash = null;
     }
 }

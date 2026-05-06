@@ -38,4 +38,16 @@ public static class EfeitosVisuais
         SpawnBurst(posicao, new Color(0.2f, 0.9f, 1f), 20, 5f, 0.7f);
         SpawnBurst(posicao, new Color(1f, 0.85f, 0.1f), 12, 3.5f, 0.6f);
     }
+
+    public static void SpawnMuzzleFlash(Vector3 posicao, Vector2 direcao)
+    {
+        SpawnBurst(posicao + (Vector3)(direcao.normalized * 0.18f), new Color(1f, 0.78f, 0.18f), 10, 5.5f, 0.16f);
+        SpawnBurst(posicao + (Vector3)(direcao.normalized * 0.12f), new Color(1f, 0.32f, 0.08f), 5, 3.2f, 0.12f);
+    }
+
+    public static void SpawnImpactoBala(Vector3 posicao)
+    {
+        SpawnBurst(posicao, new Color(0.96f, 0.72f, 0.32f), 7, 3.2f, 0.22f);
+        SpawnBurst(posicao, new Color(0.2f, 0.14f, 0.09f), 4, 2.1f, 0.28f);
+    }
 }

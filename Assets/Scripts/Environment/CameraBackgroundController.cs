@@ -6,6 +6,7 @@ using UnityEngine;
 public class CameraBackgroundController : MonoBehaviour
 {
     private const string PrefixoCamada = "CameraBackground_";
+    private static readonly int[] CopiasHorizontais = { -1, 0, 1 };
 
     [SerializeField] private Sprite[] camadas = new Sprite[0];
     [SerializeField] private ModoAjuste modoAjuste = ModoAjuste.PreencherCamera;
@@ -22,6 +23,7 @@ public class CameraBackgroundController : MonoBehaviour
     private Camera cameraAlvo;
     private Vector3 cameraReferencia;
     private bool temCameraReferencia;
+    private int maiorIndiceCamada;
 
     private void OnEnable()
     {
@@ -43,6 +45,7 @@ public class CameraBackgroundController : MonoBehaviour
     public void RecriarCamadas()
     {
         LimparCamadas();
+        maiorIndiceCamada = 0;
 
         for (int i = 0; i < camadas.Length; i++)
         {
@@ -50,14 +53,20 @@ public class CameraBackgroundController : MonoBehaviour
             if (sprite == null)
                 continue;
 
-            GameObject objetoCamada = new GameObject(PrefixoCamada + sprite.name);
-            objetoCamada.transform.SetParent(transform, false);
+            maiorIndiceCamada = Mathf.Max(maiorIndiceCamada, i);
 
-            SpriteRenderer renderer = objetoCamada.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.sortingOrder = ordemInicial + i * incrementoOrdem;
+            foreach (int copia in CopiasHorizontais)
+            {
+                GameObject objetoCamada = new GameObject(PrefixoCamada + sprite.name + "_" + copia);
+                objetoCamada.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
+                objetoCamada.transform.SetParent(transform, false);
 
-            camadasGeradas.Add(new LayerView(objetoCamada.transform, sprite.bounds.size, i));
+                SpriteRenderer renderer = objetoCamada.AddComponent<SpriteRenderer>();
+                renderer.sprite = sprite;
+                renderer.sortingOrder = ordemInicial + i * incrementoOrdem;
+
+                camadasGeradas.Add(new LayerView(objetoCamada.transform, sprite.bounds.size, i, copia));
+            }
         }
 
         temCameraReferencia = false;
@@ -92,10 +101,15 @@ public class CameraBackgroundController : MonoBehaviour
             bool camadaSky = camada.Indice == 0;
             float escalaY = camadaSky ? escala * escalaVerticalSky : escala;
             float ajusteY = camadaSky ? ajusteVerticalSky : 0f;
+            float larguraFinal = camada.TamanhoSprite.x * escala;
+            float xBase = deslocamento.x - deltaCamera.x * fatorParallax;
+
+            if (larguraFinal > 0f)
+                xBase = RepetirCentralizado(xBase, larguraFinal);
 
             camada.Transform.localScale = new Vector3(escala, escalaY, 1f);
             camada.Transform.localPosition = new Vector3(
-                deslocamento.x - deltaCamera.x * fatorParallax,
+                xBase + larguraFinal * camada.CopiaHorizontal,
                 deslocamento.y + ajusteY - deltaCamera.y * fatorParallax,
                 distanciaDaCamera);
         }
@@ -124,12 +138,17 @@ public class CameraBackgroundController : MonoBehaviour
         return escalaBase * multiplicadorEscala;
     }
 
+    private float RepetirCentralizado(float valor, float largura)
+    {
+        return Mathf.Repeat(valor + largura * 0.5f, largura) - largura * 0.5f;
+    }
+
     private float CalcularFatorParallax(int indice)
     {
-        if (parallax <= 0f || camadasGeradas.Count <= 1)
+        if (parallax <= 0f || maiorIndiceCamada <= 0)
             return 0f;
 
-        float progresso = indice / (float)(camadasGeradas.Count - 1);
+        float progresso = indice / (float)maiorIndiceCamada;
         return parallax * progresso;
     }
 
@@ -152,16 +171,18 @@ public class CameraBackgroundController : MonoBehaviour
 
     private sealed class LayerView
     {
-        public LayerView(Transform transform, Vector2 tamanhoSprite, int indice)
+        public LayerView(Transform transform, Vector2 tamanhoSprite, int indice, int copiaHorizontal)
         {
             Transform = transform;
             TamanhoSprite = tamanhoSprite;
             Indice = indice;
+            CopiaHorizontal = copiaHorizontal;
         }
 
         public Transform Transform { get; }
         public Vector2 TamanhoSprite { get; }
         public int Indice { get; }
+        public int CopiaHorizontal { get; }
     }
 
     private enum ModoAjuste

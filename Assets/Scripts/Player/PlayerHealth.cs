@@ -52,6 +52,8 @@ public class PlayerHealth : MonoBehaviour
 
         AudioManager.Instance?.TocarDano();
         EfeitosVisuais.SpawnBurst(transform.position, new Color(1f, 0.2f, 0.2f), 10, 3f, 0.45f);
+        CameraFollow.Tremer(0.16f, 0.18f);
+        UIManager.Instance?.MostrarFlashDano();
         GameManager.Instance?.PerdeuVida();
     }
 

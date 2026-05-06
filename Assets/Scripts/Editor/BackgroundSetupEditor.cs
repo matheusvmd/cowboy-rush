@@ -21,7 +21,7 @@ public static class BackgroundSetupEditor
     {
         Camera camera = Camera.main;
         if (camera == null)
-            camera = Object.FindObjectOfType<Camera>();
+            camera = Object.FindAnyObjectByType<Camera>();
 
         if (camera == null)
         {

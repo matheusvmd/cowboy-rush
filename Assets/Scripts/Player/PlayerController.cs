@@ -14,6 +14,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float intervaloDisparo = 0.3f;
     [SerializeField] private int tirosPorCarregamento = 3;
     [SerializeField] private float tempoRecarga = 3f;
+    [SerializeField] private float aceleracao = 58f;
+    [SerializeField] private float desaceleracao = 72f;
+    [SerializeField] private float recuoTiro = 0.55f;
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -118,7 +121,9 @@ public class PlayerController : MonoBehaviour
         if (pontoChao != null)
             noChao = Physics2D.OverlapCircle(pontoChao.position, 0.15f, camadaChao);
 
-        float velX = horizontal * velocidade;
+        float velXAlvo = horizontal * velocidade;
+        float taxaMudanca = Mathf.Abs(velXAlvo) > 0.01f ? aceleracao : desaceleracao;
+        float velX = Mathf.MoveTowards(rb.linearVelocity.x, velXAlvo, taxaMudanca * Time.fixedDeltaTime);
 
         // Anti-wall-stick: cancela velocidade contra a parede quando no ar
         if (!noChao && horizontal != 0f && TocandoParede())
@@ -171,6 +176,9 @@ public class PlayerController : MonoBehaviour
         BulletController bullet = bala.GetComponent<BulletController>();
         if (bullet != null) bullet.Inicializar(direcaoDisparo);
 
+        rb.AddForce(-direcaoDisparo * recuoTiro, ForceMode2D.Impulse);
+        EfeitosVisuais.SpawnMuzzleFlash(pontoDisparo.position, direcaoDisparo);
+        CameraFollow.Tremer(0.045f, 0.08f);
         AudioManager.Instance?.TocarTiro();
         anim.SetTrigger("Atirar");
     }

@@ -139,7 +139,7 @@ public static class SceneBuildHelper
     [MenuItem("CowboyRush/Configurar Camera Follow")]
     public static void ConfigurarCamera()
     {
-        var cam = Object.FindFirstObjectByType<Camera>();
+        var cam = Object.FindAnyObjectByType<Camera>();
         if (cam == null) { Debug.LogError("Camera não encontrada"); return; }
 
         var follow = cam.GetComponent<CameraFollow>();
