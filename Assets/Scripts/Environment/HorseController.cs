@@ -100,6 +100,7 @@ public class HorseController : MonoBehaviour
         if (sr != null) 
         {
             sr.sprite = spritePlayerNoCavalo;
+            sr.sortingOrder = 8;
             sr.flipX = false; // Garante orientação padrão do sprite sheet
         }
 
@@ -116,6 +117,9 @@ public class HorseController : MonoBehaviour
         posicaoInicial = transform.position; 
 
         rb.simulated = true;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0f;
+        rb.linearVelocity = Vector2.zero;
         GetComponent<Collider2D>().enabled = true;
         
         if (playerRef != null)
@@ -128,7 +132,11 @@ public class HorseController : MonoBehaviour
         }
 
         if (anim != null) anim.enabled = true;
-        if (sr != null) sr.sprite = spriteCavaloSozinho;
+        if (sr != null)
+        {
+            sr.sprite = spriteCavaloSozinho;
+            sr.sortingOrder = 5;
+        }
         Debug.Log("[CowboyRush] Desmontaria concluída.");
     }
 

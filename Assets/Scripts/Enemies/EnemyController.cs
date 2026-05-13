@@ -8,6 +8,7 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float velocidadePerseguicao = 4f;
     [SerializeField] private float rangeDeteccao = 5f;
     [SerializeField] private float rangeAtaque = 1.2f;
+    [SerializeField] private float toleranciaVerticalAtaque = 0.9f;
     [SerializeField] private float intervaloAtaque = 1.5f;
     [SerializeField] private Transform limiteEsquerdo;
     [SerializeField] private Transform limiteDireito;
@@ -125,7 +126,9 @@ public class EnemyController : MonoBehaviour
 
         float distancia = Vector2.Distance(transform.position, player.position);
 
-        if (distancia <= rangeAtaque)
+        float diferencaVertical = Mathf.Abs(player.position.y - transform.position.y);
+
+        if (distancia <= rangeAtaque && diferencaVertical <= toleranciaVerticalAtaque)
         {
             if (estadoAtual != Estado.Atacando) VirarParaPlayer();
             estadoAtual = Estado.Atacando;
