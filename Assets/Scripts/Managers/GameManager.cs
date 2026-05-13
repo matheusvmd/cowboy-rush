@@ -131,6 +131,20 @@ public class GameManager : MonoBehaviour
         UIManager.Instance?.MostrarVitoria();
     }
 
+    public void ProximaFase()
+    {
+        Vidas = vidasIniciais;
+        JogoAtivo = true;
+        EstaEmPausa = false;
+        voltarParaMenuAposCarregar = false;
+        Time.timeScale = 1f;
+        int proximoIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        if (proximoIndex < SceneManager.sceneCountInBuildSettings)
+            SceneManager.LoadScene(proximoIndex);
+        else
+            VoltarParaMenuInicial();
+    }
+
     public void JogarNovamente()
     {
         Vidas = vidasIniciais;

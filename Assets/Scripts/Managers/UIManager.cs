@@ -27,6 +27,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button botaoVoltarMenuGameOver;
     [SerializeField] private Button botaoJogarNovamente;
     [SerializeField] private Button botaoMenuVitoria;
+    [SerializeField] private Button botaoProximaFase;
     [SerializeField] private Sprite spriteVidaCheia;
     [SerializeField] private Sprite spriteVidaVazia;
     [SerializeField] private Sprite spriteMunicao;
@@ -371,8 +372,9 @@ public class UIManager : MonoBehaviour
             new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
             new Vector2(0f, 18f), new Vector2(-120f, 48f));
 
-        botaoJogarNovamente = CriarBotao("Botao_JogarNovamente", painel.transform, "JOGAR NOVAMENTE", new Vector2(-140f, -80f), new Vector2(250f, 58f));
-        botaoMenuVitoria    = CriarBotao("Botao_Menu_Vitoria",   painel.transform, "MENU INICIAL",    new Vector2( 140f, -80f), new Vector2(250f, 58f));
+        botaoProximaFase    = CriarBotao("Botao_ProximaFase",    painel.transform, "PROXIMA FASE",    new Vector2(0f, -80f),   new Vector2(250f, 58f));
+        botaoJogarNovamente = CriarBotao("Botao_JogarNovamente", painel.transform, "REPETIR FASE",    new Vector2(-280f, -80f), new Vector2(250f, 58f));
+        botaoMenuVitoria    = CriarBotao("Botao_Menu_Vitoria",   painel.transform, "MENU INICIAL",    new Vector2( 280f, -80f), new Vector2(250f, 58f));
 
         painel.SetActive(false);
         return painel;
@@ -687,6 +689,7 @@ public class UIManager : MonoBehaviour
         ConfigurarBotao(botaoComecar,           () => GameManager.Instance?.IniciarJogo());
         ConfigurarBotao(botaoRegras,            () => GameManager.Instance?.MostrarRegras());
         ConfigurarBotao(botaoVoltarRegras,      () => GameManager.Instance?.MostrarMenuInicial());
+        ConfigurarBotao(botaoProximaFase,       () => GameManager.Instance?.ProximaFase());
         ConfigurarBotao(botaoJogarNovamente,    () => GameManager.Instance?.JogarNovamente());
         ConfigurarBotao(botaoMenuVitoria,       () => GameManager.Instance?.VoltarParaMenuInicial());
         ConfigurarBotao(botaoRetomarPausa,      () => GameManager.Instance?.RetomarJogo());

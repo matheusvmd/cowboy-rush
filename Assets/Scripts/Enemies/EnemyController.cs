@@ -19,6 +19,9 @@ public class EnemyController : MonoBehaviour
     // false = sprite aponta para a esquerda por padrão (Hyena, Snake etc.)
     [SerializeField] private bool spriteFacesDireitaPadrao = false;
 
+    // Multiplicador de escala — use 2.5 no boss (Mummy)
+    [SerializeField] private float escalaMultiplicador = 1f;
+
     private Rigidbody2D rb;
     private Animator anim;
     private Transform player;
@@ -35,6 +38,15 @@ public class EnemyController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+
+        if (!Mathf.Approximately(escalaMultiplicador, 1f))
+        {
+            Vector3 s = transform.localScale;
+            s.x *= escalaMultiplicador;
+            s.y *= escalaMultiplicador;
+            transform.localScale = s;
+        }
+
         olhandoDireita = spriteFacesDireitaPadrao;
         AplicarOrientacao();
     }

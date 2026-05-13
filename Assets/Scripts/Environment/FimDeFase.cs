@@ -44,6 +44,7 @@ public class FimDeFase : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D outro)
     {
         if (chegou || !outro.CompareTag("Player")) return;
+        if (EnemyHealth.BossVivo) return;
         chegou = true;
         AudioManager.Instance?.TocarPortal();
         EfeitosVisuais.SpawnBurstPortal(transform.position);

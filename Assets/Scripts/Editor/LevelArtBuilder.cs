@@ -26,26 +26,17 @@ public static class LevelArtBuilder
     [MenuItem("CowboyRush/Arte/Aplicar Chao e Plataformas")]
     public static void AplicarChaoEPlataformas()
     {
-        Scene cena = AbrirLevel1();
+        Scene cena = SceneManager.GetActiveScene();
         LimparBackgroundPersistente();
         ConstruirArteTerreno();
         EditorSceneManager.MarkSceneDirty(cena);
         EditorSceneManager.SaveScene(cena);
-        Debug.Log("[CowboyRush] Arte do chao/plataformas aplicada.");
+        Debug.Log("[CowboyRush] Arte do chao/plataformas aplicada na cena: " + cena.name);
     }
 
     public static void AplicarLevel1Completo()
     {
         AplicarChaoEPlataformas();
-    }
-
-    private static Scene AbrirLevel1()
-    {
-        Scene cena = SceneManager.GetActiveScene();
-        if (cena.path == Level1Path)
-            return cena;
-
-        return EditorSceneManager.OpenScene(Level1Path, OpenSceneMode.Single);
     }
 
     private static void LimparBackgroundPersistente()
@@ -182,23 +173,18 @@ public static class LevelArtBuilder
 
         GameObject linha = new GameObject(nome);
         linha.transform.SetParent(parent, false);
+        linha.transform.position = new Vector3((minX + maxX) * 0.5f, y, 0f);
 
-        float larguraTile = Mathf.Max(0.1f, LarguraMundo(sprite, escala));
-        int quantidade = Mathf.CeilToInt((maxX - minX) / larguraTile) + 2;
-        float xInicial = minX - larguraTile * 0.25f;
+        SpriteRenderer renderer = linha.AddComponent<SpriteRenderer>();
+        renderer.sprite = sprite;
+        renderer.drawMode = SpriteDrawMode.Tiled;
+        renderer.tileMode = SpriteTileMode.Continuous;
+        renderer.sortingOrder = sortingOrder;
 
-        for (int i = 0; i < quantidade; i++)
-        {
-            float x = xInicial + i * larguraTile;
-            GameObject tile = new GameObject(nome + "_" + i.ToString("00"));
-            tile.transform.SetParent(linha.transform, false);
-            tile.transform.position = new Vector3(x, y, 0f);
-            tile.transform.localScale = Vector3.one * escala;
-
-            SpriteRenderer renderer = tile.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.sortingOrder = sortingOrder;
-        }
+        float larguraMundo = maxX - minX;
+        float alturaMundo = AlturaMundo(sprite, escala);
+        renderer.size = new Vector2(larguraMundo / escala, alturaMundo / escala);
+        linha.transform.localScale = Vector3.one * escala;
     }
 
     private static void ConstruirProps(Transform root)

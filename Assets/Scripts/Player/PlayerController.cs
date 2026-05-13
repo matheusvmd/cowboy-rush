@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
     private float horizontal;
     private int tirosRestantes;
     private bool recarregando;
+    private HorseController cavaloProximo;
+    private HorseController cavaloAtual;
 
     // Coyote time: permite pular levemente após sair da plataforma
     private const float TempoCoyote = 0.12f;
@@ -105,9 +107,64 @@ public class PlayerController : MonoBehaviour
         if (horizontal > 0 && !olhandoDireita) Virar();
         else if (horizontal < 0 && olhandoDireita) Virar();
 
+        // Montar/Desmontar Cavalo
+        if (kb.eKey.wasPressedThisFrame)
+        {
+            if (cavaloAtual != null)
+            {
+                Desmontar();
+            }
+            else
+            {
+                // Busca cavalo próximo via física para maior precisão
+                Collider2D[] proximos = Physics2D.OverlapCircleAll(transform.position, 2f);
+                foreach (var col in proximos)
+                {
+                    if (col.CompareTag("Cavalo"))
+                    {
+                        cavaloProximo = col.GetComponent<HorseController>();
+                        if (cavaloProximo != null)
+                        {
+                            Montar();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         // Animações
         anim.SetFloat("Velocidade", Mathf.Abs(horizontal));
         anim.SetBool("NoChao",    noChao);
+    }
+
+    private void Montar()
+    {
+        cavaloAtual = cavaloProximo;
+        cavaloAtual.Montar(gameObject);
+        cavaloProximo = null;
+    }
+
+    private void Desmontar()
+    {
+        cavaloAtual.Desmontar();
+        cavaloAtual = null;
+    }
+
+    private void OnTriggerEnter2D(Collider2D outro)
+    {
+        if (outro.CompareTag("Cavalo"))
+        {
+            cavaloProximo = outro.GetComponent<HorseController>();
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D outro)
+    {
+        if (outro.CompareTag("Cavalo") && cavaloProximo == outro.GetComponent<HorseController>())
+        {
+            cavaloProximo = null;
+        }
     }
 
     private void FixedUpdate()
