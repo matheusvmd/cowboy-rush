@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    private const string NomeCenaLevel1 = "Level1";
 
     [SerializeField] private int vidasIniciais = 3;
 
@@ -67,6 +68,7 @@ public class GameManager : MonoBehaviour
         JogoAtivo = false;
         EstaEmPausa = false;
         Time.timeScale = 0f;
+        AudioManager.GarantirInstancia()?.TocarMusicaMenu();
         UIManager.Instance?.AtualizarVidas(Vidas);
         UIManager.Instance?.MostrarMenuInicial();
     }
@@ -83,9 +85,10 @@ public class GameManager : MonoBehaviour
         Vidas = vidasIniciais;
         JogoAtivo = true;
         EstaEmPausa = false;
+        voltarParaMenuAposCarregar = false;
         Time.timeScale = 1f;
-        UIManager.Instance?.MostrarJogo();
-        UIManager.Instance?.AtualizarVidas(Vidas);
+        AudioManager.GarantirInstancia()?.PararMusica();
+        SceneManager.LoadScene(NomeCenaLevel1);
     }
 
     public void PausarJogo()
@@ -138,6 +141,7 @@ public class GameManager : MonoBehaviour
         EstaEmPausa = false;
         voltarParaMenuAposCarregar = false;
         Time.timeScale = 1f;
+        AudioManager.GarantirInstancia()?.PararMusica();
         int proximoIndex = SceneManager.GetActiveScene().buildIndex + 1;
         if (proximoIndex < SceneManager.sceneCountInBuildSettings)
             SceneManager.LoadScene(proximoIndex);
@@ -152,6 +156,7 @@ public class GameManager : MonoBehaviour
         EstaEmPausa = false;
         voltarParaMenuAposCarregar = false;
         Time.timeScale = 1f;
+        AudioManager.GarantirInstancia()?.PararMusica();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 

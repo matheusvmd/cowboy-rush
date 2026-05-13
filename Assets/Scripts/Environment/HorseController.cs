@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D), typeof(Animator))]
 public class HorseController : MonoBehaviour
@@ -10,17 +11,33 @@ public class HorseController : MonoBehaviour
 
     [Header("Configuração")]
     [SerializeField] private float offsetYNoPlayer = 0.6f;
+    [SerializeField] private int vidaMaximaMontado = 2;
+    [SerializeField] private float invencibilidadeAoDerrubar = 0.8f;
+    [SerializeField] private float fpsCavalgada = 12f;
+    [SerializeField] private bool spriteMontadoOlhaDireita = true;
     [SerializeField] private Sprite spriteCavaloSozinho;
     [SerializeField] private Sprite spritePlayerNoCavalo;
+    [SerializeField] private Sprite[] framesPlayerNoCavalo = new Sprite[0];
 
     private Vector3 posicaoInicial;
     private bool indoParaDireita = true;
     private bool montado;
+    private int vidaAtual;
+    private int frameMontadoAtual;
+    private float timerAnimacaoMontado;
     private PlayerHealth playerHealth;
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private Animator anim;
     private GameObject playerRef;
+
+    private int VidaMaximaMontado => Mathf.Max(2, vidaMaximaMontado);
+
+    private void OnValidate()
+    {
+        vidaMaximaMontado = Mathf.Max(2, vidaMaximaMontado);
+        invencibilidadeAoDerrubar = Mathf.Max(0f, invencibilidadeAoDerrubar);
+    }
 
     private void Awake()
     {
@@ -42,8 +59,23 @@ public class HorseController : MonoBehaviour
 
         string pathPlayer = "Assets/Sprites/PlayerOnHorse/PlayerOnHorse_SpriteSheet.png";
         Object[] assetsP = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(pathPlayer);
-        foreach(var a in assetsP) if(a is Sprite s && s.name.EndsWith("_0")) { spritePlayerNoCavalo = s; break; }
+        framesPlayerNoCavalo = assetsP
+            .OfType<Sprite>()
+            .OrderBy(s => ExtrairIndiceSprite(s.name))
+            .ToArray();
+
+        if (framesPlayerNoCavalo.Length > 0)
+            spritePlayerNoCavalo = framesPlayerNoCavalo[0];
 #endif
+    }
+
+    private int ExtrairIndiceSprite(string nome)
+    {
+        int separador = nome.LastIndexOf('_');
+        if (separador < 0 || separador >= nome.Length - 1)
+            return 0;
+
+        return int.TryParse(nome.Substring(separador + 1), out int indice) ? indice : 0;
     }
 
     private void Update()
@@ -78,10 +110,12 @@ public class HorseController : MonoBehaviour
     {
         Debug.Log("[CowboyRush] Montando no cavalo...");
         montado = true;
+        vidaAtual = VidaMaximaMontado;
         playerRef = player;
         playerHealth = player.GetComponent<PlayerHealth>();
         if (playerHealth != null)
             playerHealth.DefinirCavalo(this);
+        UIManager.Instance?.AtualizarVidasCavalo(vidaAtual, VidaMaximaMontado, true);
 
         AudioManager.Instance?.TocarMontar();
 
@@ -96,23 +130,69 @@ public class HorseController : MonoBehaviour
         if (anim != null) anim.enabled = false; // Desativa animação de cavalo sozinho
         
         // Se o sprite de Cowboy montado não carregou, tenta novamente
-        if (spritePlayerNoCavalo == null) CarregarSpritesDefault();
+        if (spritePlayerNoCavalo == null || framesPlayerNoCavalo == null || framesPlayerNoCavalo.Length == 0) CarregarSpritesDefault();
+        frameMontadoAtual = 0;
+        timerAnimacaoMontado = 0f;
         if (sr != null) 
         {
             sr.sprite = spritePlayerNoCavalo;
             sr.sortingOrder = 8;
-            sr.flipX = false; // Garante orientação padrão do sprite sheet
         }
 
         transform.SetParent(player.transform);
         transform.localPosition = new Vector3(0f, offsetYNoPlayer, 0f);
+        AtualizarMontaria(0f, player.transform.localScale.x >= 0f);
         Debug.Log("[CowboyRush] Montaria concluída.");
+    }
+
+    public void AtualizarMontaria(float movimentoHorizontal, bool olhandoDireita)
+    {
+        if (!montado || sr == null) return;
+
+        CorrigirOrientacaoMontado(olhandoDireita);
+
+        bool estaCavalgando = Mathf.Abs(movimentoHorizontal) > 0.05f;
+        if (!estaCavalgando || framesPlayerNoCavalo == null || framesPlayerNoCavalo.Length == 0)
+        {
+            frameMontadoAtual = 0;
+            timerAnimacaoMontado = 0f;
+            sr.sprite = spritePlayerNoCavalo;
+            return;
+        }
+
+        timerAnimacaoMontado += Time.deltaTime;
+        float intervaloFrame = 1f / Mathf.Max(1f, fpsCavalgada);
+        if (timerAnimacaoMontado < intervaloFrame) return;
+
+        timerAnimacaoMontado -= intervaloFrame;
+        frameMontadoAtual = (frameMontadoAtual + 1) % framesPlayerNoCavalo.Length;
+        sr.sprite = framesPlayerNoCavalo[frameMontadoAtual];
+    }
+
+    private void CorrigirOrientacaoMontado(bool olhandoDireita)
+    {
+        if (playerRef != null)
+        {
+            float sinalPlayer = Mathf.Sign(playerRef.transform.localScale.x);
+            if (Mathf.Approximately(sinalPlayer, 0f)) sinalPlayer = 1f;
+            Vector3 escala = transform.localScale;
+            escala.x = Mathf.Abs(escala.x) * sinalPlayer;
+            transform.localScale = escala;
+        }
+
+        sr.flipX = spriteMontadoOlhaDireita ? !olhandoDireita : olhandoDireita;
     }
 
     public void Desmontar()
     {
+        Desmontar(false);
+    }
+
+    private void Desmontar(bool cavaloDerrotado)
+    {
         Debug.Log("[CowboyRush] Desmontando do cavalo...");
         montado = false;
+        UIManager.Instance?.AtualizarVidasCavalo(0, VidaMaximaMontado, false);
         transform.SetParent(null);
         posicaoInicial = transform.position; 
 
@@ -128,12 +208,24 @@ public class HorseController : MonoBehaviour
             if (playerSR != null) playerSR.enabled = true;
             
             if (playerHealth != null) playerHealth.DefinirCavalo(null);
+            if (cavaloDerrotado && playerHealth != null)
+                playerHealth.ProtegerAposDesmontar(invencibilidadeAoDerrubar);
+            PlayerController playerController = playerRef.GetComponent<PlayerController>();
+            if (playerController != null) playerController.NotificarDesmontou(this);
             playerRef = null;
+        }
+
+        if (cavaloDerrotado)
+        {
+            EfeitosVisuais.SpawnBurst(transform.position, new Color(0.95f, 0.68f, 0.16f), 18, 5f, 0.55f);
+            Destroy(gameObject);
+            return;
         }
 
         if (anim != null) anim.enabled = true;
         if (sr != null)
         {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
             sr.sprite = spriteCavaloSozinho;
             sr.sortingOrder = 5;
         }
@@ -148,16 +240,15 @@ public class HorseController : MonoBehaviour
 
     public void AbsorverDano()
     {
-        if (playerHealth != null)
-            playerHealth.DefinirCavalo(null);
+        if (!montado) return;
 
-        if (playerRef != null)
-        {
-            var playerSR = playerRef.GetComponent<SpriteRenderer>();
-            if (playerSR != null) playerSR.enabled = true;
-        }
+        vidaAtual = Mathf.Max(vidaAtual - 1, 0);
+        UIManager.Instance?.AtualizarVidasCavalo(vidaAtual, VidaMaximaMontado, true);
 
         EfeitosVisuais.SpawnBurst(transform.position, new Color(0.75f, 0.5f, 0.2f), 12, 4f, 0.5f);
-        Destroy(gameObject);
+        CameraFollow.Tremer(0.12f, 0.12f);
+
+        if (vidaAtual <= 0)
+            Desmontar(true);
     }
 }

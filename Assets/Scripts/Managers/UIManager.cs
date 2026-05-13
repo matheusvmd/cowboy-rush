@@ -11,6 +11,7 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [SerializeField] private Image[] iconesVida;
+    [SerializeField] private Image[] iconesVidaCavalo;
     [SerializeField] private GameObject painelMunicao;
     [SerializeField] private Image iconeMunicao;
     [SerializeField] private Text textoMunicao;
@@ -35,13 +36,24 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Color corVidaBrilho = new Color(1f, 0.38f, 0.46f, 1f);
     [SerializeField] private Color corVidaBorda = new Color(0.34f, 0.01f, 0.03f, 1f);
     [SerializeField] private Color corVidaVazia = new Color(0.34f, 0.01f, 0.03f, 0.45f);
+    [SerializeField] private Color corVidaCavaloCheia = new Color(1f, 0.71f, 0.12f, 1f);
+    [SerializeField] private Color corVidaCavaloBrilho = new Color(1f, 0.92f, 0.42f, 1f);
+    [SerializeField] private Color corVidaCavaloBorda = new Color(0.38f, 0.21f, 0.03f, 1f);
+    [SerializeField] private Color corVidaCavaloVazia = new Color(0.38f, 0.21f, 0.03f, 0.42f);
     [SerializeField] private Color corMunicaoNormal = new Color(1f, 0.86f, 0.42f, 1f);
     [SerializeField] private Color corMunicaoBaixa = new Color(1f, 0.42f, 0.24f, 1f);
     [SerializeField] private Color corFlashDanoTela = new Color(1f, 0.05f, 0.02f, 0.45f);
 
     private Button botaoRetomarPausa;
     private Button botaoMenuPausaBtn;
+    private GameObject painelVidaCavalo;
+    private RectTransform portalVitoriaRect;
+    private Image[] aurasPortalVitoria;
+    private Color[] coresPortalVitoria;
     private float alphaFlashDano;
+    private int vidasCavaloAtuais;
+    private int vidasMaximasCavalo = 2;
+    private bool mostrarVidasCavalo;
 
     private const int PixelsPorUnidadeCoracao = 16;
     private const int PixelsPorUnidadeMunicao = 16;
@@ -50,7 +62,7 @@ public class UIManager : MonoBehaviour
         "MOVER         A / D  ou  Seta Esq / Dir\n" +
         "PULAR         Espaco, W ou Seta Cima\n" +
         "ATIRAR        C, Z ou Ctrl Esquerdo\n\n" +
-        "Cavalos absorvem 1 dano — encoste para montar\n" +
+        "Cavalos absorvem 2 danos — encoste para montar\n" +
         "Cactos causam dano ao toque\n" +
         "Inimigos patrulham e perseguem o jogador\n" +
         "Chegue ao portal verde para completar a fase\n\n" +
@@ -76,9 +88,12 @@ public class UIManager : MonoBehaviour
 
     private Sprite spriteVidaCheiaGerado;
     private Sprite spriteVidaVaziaGerado;
+    private Sprite spriteVidaCavaloCheiaGerado;
+    private Sprite spriteVidaCavaloVaziaGerado;
     private Sprite spriteMunicaoGerado;
     private Sprite spritePainelWesternGerado;
     private Sprite spriteBotaoWesternGerado;
+    private Sprite spritePortalVitoriaGerado;
     private Font fontePadrao;
 
     private void Awake()
@@ -94,6 +109,7 @@ public class UIManager : MonoBehaviour
         ConfigurarBotoes();
         PrepararSpritesVida();
         AtualizarVidas(iconesVida != null ? iconesVida.Length : 0);
+        AtualizarVidasCavalo(0, vidasMaximasCavalo, false);
     }
 
     private void OnDestroy()
@@ -101,14 +117,18 @@ public class UIManager : MonoBehaviour
         if (Instance == this) Instance = null;
         LimparSpriteGerado(spriteVidaCheiaGerado);
         LimparSpriteGerado(spriteVidaVaziaGerado);
+        LimparSpriteGerado(spriteVidaCavaloCheiaGerado);
+        LimparSpriteGerado(spriteVidaCavaloVaziaGerado);
         LimparSpriteGerado(spriteMunicaoGerado);
         LimparSpriteGerado(spritePainelWesternGerado);
         LimparSpriteGerado(spriteBotaoWesternGerado);
+        LimparSpriteGerado(spritePortalVitoriaGerado);
     }
 
     private void Update()
     {
         AtualizarFlashDano();
+        AtualizarPortalVitoria();
     }
 
     // ── Atualização de HUD ──────────────────────────────────────────────────
@@ -125,6 +145,31 @@ public class UIManager : MonoBehaviour
             iconesVida[i].type = Image.Type.Simple;
             iconesVida[i].preserveAspect = true;
             iconesVida[i].raycastTarget = false;
+        }
+    }
+
+    public void AtualizarVidasCavalo(int vidas, int vidasMaximas, bool visivel)
+    {
+        vidasMaximasCavalo = Mathf.Max(1, vidasMaximas);
+        vidasCavaloAtuais = Mathf.Clamp(vidas, 0, vidasMaximasCavalo);
+        mostrarVidasCavalo = visivel;
+
+        GarantirHudCavalo();
+
+        if (painelVidaCavalo != null)
+            painelVidaCavalo.SetActive(visivel && GameManager.Instance != null && GameManager.Instance.JogoAtivo);
+
+        if (iconesVidaCavalo == null) return;
+        PrepararSpritesVida();
+        for (int i = 0; i < iconesVidaCavalo.Length; i++)
+        {
+            if (iconesVidaCavalo[i] == null) continue;
+            bool cheio = i < vidasCavaloAtuais;
+            iconesVidaCavalo[i].sprite = cheio ? SpriteVidaCavaloCheia : SpriteVidaCavaloVazia;
+            iconesVidaCavalo[i].color = Color.white;
+            iconesVidaCavalo[i].type = Image.Type.Simple;
+            iconesVidaCavalo[i].preserveAspect = true;
+            iconesVidaCavalo[i].raycastTarget = false;
         }
     }
 
@@ -272,6 +317,7 @@ public class UIManager : MonoBehaviour
         }
 
         if (painelMunicao != null) ColetarReferenciasPainelMunicao();
+        GarantirHudCavalo();
         ConfigurarPainelGameOver();
     }
 
@@ -351,33 +397,140 @@ public class UIManager : MonoBehaviour
 
     private GameObject CriarTelaVitoria()
     {
-        GameObject painel = CriarPainelTelaCheia("Painel_Vitoria", new Color(0.06f, 0.05f, 0.01f, 0.93f));
+        GameObject painel = CriarPainelTelaCheia("Painel_Vitoria", Color.clear);
+        CriarFundoBg03(painel.transform, "Fundo_Vitoria", 0.28f);
 
-        GameObject borda = new GameObject("Borda_Vitoria", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-        borda.transform.SetParent(painel.transform, false);
-        var bordaRect = borda.GetComponent<RectTransform>();
-        bordaRect.anchorMin = new Vector2(0.08f, 0.12f);
-        bordaRect.anchorMax = new Vector2(0.92f, 0.88f);
-        bordaRect.offsetMin = Vector2.zero;
-        bordaRect.offsetMax = Vector2.zero;
-        borda.GetComponent<Image>().color = new Color(0.85f, 0.68f, 0.05f, 0.18f);
+        GameObject vinheta = CriarRetanguloUI("Vinheta_Vitoria", painel.transform, new Color(0.025f, 0.012f, 0.004f, 0.58f));
+        EsticarTela(vinheta.GetComponent<RectTransform>());
 
-        CriarTexto("Titulo_Vitoria", painel.transform, "VITORIA!", 72,
-            new Color(1f, 0.88f, 0.18f, 1f), TextAnchor.MiddleCenter,
+        GameObject cartaz = CriarCartazWestern("Cartaz_Vitoria", painel.transform, new Vector2(840f, 560f), new Vector2(0f, 4f));
+
+        CriarPortalVitoria(cartaz.transform);
+        CriarLinhaDecorativa(cartaz.transform, "Linha_Vitoria_Topo", new Vector2(0f, 112f), new Vector2(530f, 5f), new Color(0.98f, 0.68f, 0.18f, 0.82f));
+        CriarLinhaDecorativa(cartaz.transform, "Linha_Vitoria_Base", new Vector2(0f, -142f), new Vector2(560f, 5f), new Color(0.98f, 0.68f, 0.18f, 0.72f));
+
+        Text selo = CriarTexto("Selo_Vitoria", cartaz.transform, "PORTAL ALCANCADO", 20,
+            new Color(0.48f, 1f, 0.66f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+            new Vector2(0f, 178f), new Vector2(320f, 34f));
+        selo.fontStyle = FontStyle.Bold;
+        AdicionarTextoSombra(selo, new Color(0.01f, 0.12f, 0.05f, 0.95f), new Vector2(2f, -2f));
+
+        Text titulo = CriarTexto("Titulo_Vitoria", cartaz.transform, "FASE CONCLUIDA", 56,
+            new Color(1f, 0.83f, 0.28f, 1f), TextAnchor.MiddleCenter,
             new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
-            new Vector2(0f, 100f), new Vector2(-80f, 110f));
+            new Vector2(0f, 54f), new Vector2(-110f, 88f));
+        titulo.fontStyle = FontStyle.Bold;
+        AdicionarTextoSombra(titulo, new Color(0.08f, 0.025f, 0.005f, 0.95f), new Vector2(4f, -4f));
+        AdicionarTextoContorno(titulo, new Color(0.28f, 0.09f, 0.015f, 1f), new Vector2(3f, 3f));
 
-        CriarTexto("Sub_Vitoria", painel.transform, "Fase concluida! Muito bem, cowboy!", 28,
-            new Color(1f, 0.95f, 0.75f, 1f), TextAnchor.MiddleCenter,
+        Text subtitulo = CriarTexto("Sub_Vitoria", cartaz.transform, "O caminho pelo velho oeste continua.", 25,
+            new Color(1f, 0.94f, 0.76f, 1f), TextAnchor.MiddleCenter,
             new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
-            new Vector2(0f, 18f), new Vector2(-120f, 48f));
+            new Vector2(0f, -18f), new Vector2(-170f, 44f));
+        subtitulo.fontStyle = FontStyle.Bold;
+        AdicionarTextoSombra(subtitulo, new Color(0.1f, 0.045f, 0.02f, 0.85f), new Vector2(2f, -2f));
 
-        botaoProximaFase    = CriarBotao("Botao_ProximaFase",    painel.transform, "PROXIMA FASE",    new Vector2(0f, -80f),   new Vector2(250f, 58f));
-        botaoJogarNovamente = CriarBotao("Botao_JogarNovamente", painel.transform, "REPETIR FASE",    new Vector2(-280f, -80f), new Vector2(250f, 58f));
-        botaoMenuVitoria    = CriarBotao("Botao_Menu_Vitoria",   painel.transform, "MENU INICIAL",    new Vector2( 280f, -80f), new Vector2(250f, 58f));
+        Text detalhe = CriarTexto("Detalhe_Vitoria", cartaz.transform, "Respire, recarregue e escolha o proximo passo.", 18,
+            new Color(0.91f, 0.76f, 0.48f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
+            new Vector2(0f, -70f), new Vector2(-220f, 34f));
+        detalhe.fontStyle = FontStyle.Bold;
+
+        botaoProximaFase    = CriarBotaoWestern("Botao_ProximaFase",    cartaz.transform, "PROXIMA FASE", new Vector2(0f, -188f), new Vector2(285f, 62f));
+        botaoJogarNovamente = CriarBotaoWestern("Botao_JogarNovamente", cartaz.transform, "REPETIR",      new Vector2(-248f, -188f), new Vector2(205f, 56f));
+        botaoMenuVitoria    = CriarBotaoWestern("Botao_Menu_Vitoria",   cartaz.transform, "MENU",         new Vector2(248f, -188f), new Vector2(205f, 56f));
 
         painel.SetActive(false);
         return painel;
+    }
+
+    private void CriarPortalVitoria(Transform pai)
+    {
+        var portal = new GameObject("Portal_Vitoria", typeof(RectTransform));
+        portal.transform.SetParent(pai, false);
+
+        RectTransform portalRect = portal.GetComponent<RectTransform>();
+        portalRect.anchorMin = new Vector2(0.5f, 0.5f);
+        portalRect.anchorMax = new Vector2(0.5f, 0.5f);
+        portalRect.pivot = new Vector2(0.5f, 0.5f);
+        portalRect.anchoredPosition = new Vector2(0f, 150f);
+        portalRect.sizeDelta = new Vector2(210f, 210f);
+
+        Color verdeEscuro = new Color(0.02f, 0.34f, 0.17f, 0.72f);
+        Color verdeMedio = new Color(0.12f, 0.84f, 0.42f, 0.62f);
+        Color verdeClaro = new Color(0.62f, 1f, 0.66f, 0.88f);
+
+        for (int i = 0; i < 12; i++)
+        {
+            GameObject raio = CriarRetanguloUI("Raio_Portal_" + i, portal.transform, new Color(0.55f, 1f, 0.52f, i % 2 == 0 ? 0.34f : 0.2f));
+            RectTransform raioRect = raio.GetComponent<RectTransform>();
+            raioRect.anchorMin = new Vector2(0.5f, 0.5f);
+            raioRect.anchorMax = new Vector2(0.5f, 0.5f);
+            raioRect.pivot = new Vector2(0.5f, 0f);
+            raioRect.anchoredPosition = Vector2.zero;
+            raioRect.sizeDelta = new Vector2(i % 2 == 0 ? 5f : 3f, i % 2 == 0 ? 104f : 82f);
+            raioRect.localRotation = Quaternion.Euler(0f, 0f, i * 30f);
+        }
+
+        Image auraExterna = CriarImagemPortal("Aura_Externa", portal.transform, new Vector2(205f, 205f), verdeEscuro);
+        Image auraMedia = CriarImagemPortal("Aura_Media", portal.transform, new Vector2(154f, 154f), verdeMedio);
+        Image nucleo = CriarImagemPortal("Nucleo_Portal", portal.transform, new Vector2(86f, 86f), verdeClaro);
+
+        portalVitoriaRect = portalRect;
+        aurasPortalVitoria = new[] { auraExterna, auraMedia, nucleo };
+        coresPortalVitoria = new[] { verdeEscuro, verdeMedio, verdeClaro };
+        CriarCheckPortal(portal.transform);
+    }
+
+    private void AtualizarPortalVitoria()
+    {
+        if (portalVitoriaRect == null || !portalVitoriaRect.gameObject.activeInHierarchy)
+            return;
+
+        float tempo = Time.unscaledTime;
+        float pulso = (Mathf.Sin(tempo * 2.4f) + 1f) * 0.5f;
+        portalVitoriaRect.localScale = Vector3.one * Mathf.Lerp(0.985f, 1.035f, pulso);
+
+        if (aurasPortalVitoria == null || coresPortalVitoria == null)
+            return;
+
+        for (int i = 0; i < aurasPortalVitoria.Length && i < coresPortalVitoria.Length; i++)
+        {
+            if (aurasPortalVitoria[i] == null) continue;
+            Color cor = coresPortalVitoria[i];
+            cor.a = Mathf.Clamp01(cor.a * Mathf.Lerp(0.78f, 1.12f, (pulso + i * 0.22f) % 1f));
+            aurasPortalVitoria[i].color = cor;
+        }
+    }
+
+    private void CriarCheckPortal(Transform pai)
+    {
+        Text check = CriarTexto("Check_Portal", pai, "✓", 58,
+            new Color(0.05f, 0.18f, 0.08f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+            new Vector2(0f, 2f), new Vector2(70f, 70f));
+        check.fontStyle = FontStyle.Bold;
+        check.raycastTarget = false;
+    }
+
+    private Image CriarImagemPortal(string nome, Transform pai, Vector2 tamanho, Color cor)
+    {
+        var objeto = new GameObject(nome, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        objeto.transform.SetParent(pai, false);
+
+        RectTransform rect = objeto.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = tamanho;
+
+        Image imagem = objeto.GetComponent<Image>();
+        imagem.sprite = SpritePortalVitoria;
+        imagem.color = cor;
+        imagem.raycastTarget = false;
+        return imagem;
     }
 
     private GameObject CriarTelaPausa()
@@ -741,6 +894,8 @@ public class UIManager : MonoBehaviour
 
     private Sprite SpriteVidaCheia => spriteVidaCheia != null ? spriteVidaCheia : spriteVidaCheiaGerado;
     private Sprite SpriteVidaVazia => spriteVidaVazia != null ? spriteVidaVazia : spriteVidaVaziaGerado;
+    private Sprite SpriteVidaCavaloCheia => spriteVidaCavaloCheiaGerado;
+    private Sprite SpriteVidaCavaloVazia => spriteVidaCavaloVaziaGerado;
     private Sprite SpritePainelWestern
     {
         get
@@ -758,6 +913,16 @@ public class UIManager : MonoBehaviour
             if (spriteBotaoWesternGerado == null)
                 spriteBotaoWesternGerado = CriarSpriteWestern(true);
             return spriteBotaoWesternGerado;
+        }
+    }
+
+    private Sprite SpritePortalVitoria
+    {
+        get
+        {
+            if (spritePortalVitoriaGerado == null)
+                spritePortalVitoriaGerado = CriarSpritePortalVitoria();
+            return spritePortalVitoriaGerado;
         }
     }
 
@@ -808,11 +973,13 @@ public class UIManager : MonoBehaviour
         if (iconesVida == null || iconesVida.Length == 0 || iconesVida[0] == null)
         {
             if (painelMunicao != null) painelMunicao.SetActive(visivel);
+            if (painelVidaCavalo != null) painelVidaCavalo.SetActive(visivel && mostrarVidasCavalo);
             return;
         }
         Transform painelVidas = iconesVida[0].transform.parent;
         if (painelVidas != null) painelVidas.gameObject.SetActive(visivel);
         if (painelMunicao != null) painelMunicao.SetActive(visivel);
+        if (painelVidaCavalo != null) painelVidaCavalo.SetActive(visivel && mostrarVidasCavalo);
     }
 
     private Transform EncontrarFilho(Transform raiz, string nome)
@@ -858,6 +1025,60 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void GarantirHudCavalo()
+    {
+        if (painelVidaCavalo != null && iconesVidaCavalo != null && iconesVidaCavalo.Length == vidasMaximasCavalo)
+            return;
+
+        Transform painelVidas = null;
+        if (iconesVida != null && iconesVida.Length > 0 && iconesVida[0] != null)
+            painelVidas = iconesVida[0].transform.parent;
+
+        if (painelVidas == null)
+        {
+            Transform existente = transform.Find("Painel_Vidas");
+            if (existente != null) painelVidas = existente;
+        }
+
+        if (painelVidas == null) return;
+
+        Transform painelExistente = painelVidas.Find("Painel_Vida_Cavalo");
+        if (painelExistente != null)
+        {
+            painelVidaCavalo = painelExistente.gameObject;
+            iconesVidaCavalo = painelVidaCavalo.GetComponentsInChildren<Image>(true);
+            return;
+        }
+
+        painelVidaCavalo = new GameObject("Painel_Vida_Cavalo", typeof(RectTransform));
+        painelVidaCavalo.transform.SetParent(painelVidas, false);
+
+        RectTransform painelRect = painelVidaCavalo.GetComponent<RectTransform>();
+        painelRect.anchorMin = new Vector2(0f, 0.5f);
+        painelRect.anchorMax = new Vector2(0f, 0.5f);
+        painelRect.pivot = new Vector2(0f, 0.5f);
+        painelRect.anchoredPosition = new Vector2(0f, -38f);
+        painelRect.sizeDelta = new Vector2(120f, 34f);
+
+        iconesVidaCavalo = new Image[vidasMaximasCavalo];
+        for (int i = 0; i < iconesVidaCavalo.Length; i++)
+        {
+            GameObject iconeGO = new GameObject("Icone_Vida_Cavalo_" + (i + 1), typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconeGO.transform.SetParent(painelVidaCavalo.transform, false);
+
+            RectTransform rect = iconeGO.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 0.5f);
+            rect.anchorMax = new Vector2(0f, 0.5f);
+            rect.pivot = new Vector2(0f, 0.5f);
+            rect.anchoredPosition = new Vector2(i * 38f, 0f);
+            rect.sizeDelta = new Vector2(32f, 32f);
+
+            iconesVidaCavalo[i] = iconeGO.GetComponent<Image>();
+        }
+
+        painelVidaCavalo.SetActive(mostrarVidasCavalo);
+    }
+
     public void MostrarFlashDano(float intensidade = 1f)
     {
         ConstruirTelasSeNecessario();
@@ -887,9 +1108,11 @@ public class UIManager : MonoBehaviour
     {
         if (spriteVidaCheia == null && spriteVidaCheiaGerado == null) spriteVidaCheiaGerado = CriarSpriteCoracao(true);
         if (spriteVidaVazia == null && spriteVidaVaziaGerado == null) spriteVidaVaziaGerado = CriarSpriteCoracao(false);
+        if (spriteVidaCavaloCheiaGerado == null) spriteVidaCavaloCheiaGerado = CriarSpriteCoracao(true, true);
+        if (spriteVidaCavaloVaziaGerado == null) spriteVidaCavaloVaziaGerado = CriarSpriteCoracao(false, true);
     }
 
-    private Sprite CriarSpriteCoracao(bool cheio)
+    private Sprite CriarSpriteCoracao(bool cheio, bool cavalo = false)
     {
         int largura = MascaraCoracao[0].Length;
         int altura  = MascaraCoracao.Length;
@@ -897,13 +1120,13 @@ public class UIManager : MonoBehaviour
         {
             filterMode = FilterMode.Point,
             wrapMode   = TextureWrapMode.Clamp,
-            name       = cheio ? "Coracao_Vida_Cheio" : "Coracao_Vida_Vazio"
+            name       = cavalo ? (cheio ? "Coracao_Cavalo_Cheio" : "Coracao_Cavalo_Vazio") : (cheio ? "Coracao_Vida_Cheio" : "Coracao_Vida_Vazio")
         };
         for (int y = 0; y < altura; y++)
         {
             string linha = MascaraCoracao[altura - 1 - y];
             for (int x = 0; x < largura; x++)
-                textura.SetPixel(x, y, CorDoPixel(linha[x], cheio));
+                textura.SetPixel(x, y, CorDoPixel(linha[x], cheio, cavalo));
         }
         textura.Apply();
         var sprite = Sprite.Create(textura, new Rect(0, 0, largura, altura),
@@ -935,6 +1158,40 @@ public class UIManager : MonoBehaviour
         textura.Apply();
         var sprite = Sprite.Create(textura, new Rect(0, 0, tamanho, tamanho),
             new Vector2(0.5f, 0.5f), PixelsPorUnidadeMunicao, 0, SpriteMeshType.FullRect);
+        sprite.name = textura.name;
+        return sprite;
+    }
+
+    private Sprite CriarSpritePortalVitoria()
+    {
+        const int tamanho = 96;
+        float centro = (tamanho - 1) * 0.5f;
+        var textura = new Texture2D(tamanho, tamanho, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp,
+            name = "UI_Portal_Vitoria"
+        };
+
+        for (int y = 0; y < tamanho; y++)
+        {
+            for (int x = 0; x < tamanho; x++)
+            {
+                float dx = (x - centro) / centro;
+                float dy = (y - centro) / centro;
+                float distancia = Mathf.Sqrt(dx * dx + dy * dy);
+                float anel = Mathf.Clamp01(1f - Mathf.Abs(distancia - 0.58f) * 8f);
+                float nucleo = Mathf.Clamp01(1f - distancia * 1.55f);
+                float brilho = Mathf.Max(anel * 0.9f, nucleo * 0.72f);
+                float alpha = Mathf.SmoothStep(0f, 1f, brilho) * Mathf.Clamp01(1f - distancia);
+
+                textura.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+            }
+        }
+
+        textura.Apply();
+        Sprite sprite = Sprite.Create(textura, new Rect(0, 0, tamanho, tamanho),
+            new Vector2(0.5f, 0.5f), 32f, 0, SpriteMeshType.FullRect);
         sprite.name = textura.name;
         return sprite;
     }
@@ -1040,12 +1297,17 @@ public class UIManager : MonoBehaviour
         Destroy(textura);
     }
 
-    private Color CorDoPixel(char pixel, bool cheio)
+    private Color CorDoPixel(char pixel, bool cheio, bool cavalo = false)
     {
-        if (pixel == 'B') return cheio ? corVidaBorda : corVidaVazia;
+        Color borda = cavalo ? corVidaCavaloBorda : corVidaBorda;
+        Color vazia = cavalo ? corVidaCavaloVazia : corVidaVazia;
+        Color brilho = cavalo ? corVidaCavaloBrilho : corVidaBrilho;
+        Color preenchimento = cavalo ? corVidaCavaloCheia : corVidaCheia;
+
+        if (pixel == 'B') return cheio ? borda : vazia;
         if (!cheio) return Color.clear;
-        if (pixel == 'P') return corVidaBrilho;
-        if (pixel == 'F') return corVidaCheia;
+        if (pixel == 'P') return brilho;
+        if (pixel == 'F') return preenchimento;
         return Color.clear;
     }
 }

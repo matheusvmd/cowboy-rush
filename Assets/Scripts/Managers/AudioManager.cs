@@ -11,6 +11,8 @@ public class AudioManager : MonoBehaviour
     private const string RecargaPadraoPath = "Assets/reload.mp3";
     private const string DanoPadraoPath = "Assets/damage.mp3";
     private const string VitoriaPadraoPath = "Assets/victory.mp3";
+    private const string MusicaMenuPadraoPath = "Assets/Resources/Outlaws From The West.mp3";
+    private const string MusicaMenuResourcePath = "Outlaws From The West";
 
     [Header("SFX")]
     [SerializeField] private AudioClip sfxTiro;
@@ -23,6 +25,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField, Min(0.05f)] private float duracaoMaximaTiro = 1f;
 
     [Header("Música")]
+    [SerializeField] private AudioClip musicaMenuInicial;
     [SerializeField] private AudioClip musicaTrilha;
     [SerializeField] [Range(0f, 1f)] private float volumeMusica = 0.45f;
     [SerializeField] [Range(0f, 1f)] private float volumeSFX = 0.9f;
@@ -32,13 +35,20 @@ public class AudioManager : MonoBehaviour
     private AudioSource sourceTiro;
     private int tokenTiro;
 
+    public static AudioManager GarantirInstancia()
+    {
+        if (Instance != null) return Instance;
+
+        AudioManager existente = UnityEngine.Object.FindAnyObjectByType<AudioManager>();
+        if (existente != null) return existente;
+
+        return new GameObject("AudioManager").AddComponent<AudioManager>();
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void GarantirInstanciaNaCena()
     {
-        if (Instance != null || UnityEngine.Object.FindAnyObjectByType<AudioManager>() != null)
-            return;
-
-        new GameObject("AudioManager").AddComponent<AudioManager>();
+        GarantirInstancia();
     }
 
     private void Awake()
@@ -68,19 +78,25 @@ public class AudioManager : MonoBehaviour
         sourceTiro.spatialBlend = 0f;
     }
 
-    private void Start()
-    {
-        if (musicaTrilha != null)
-        {
-            sourceMusica.clip = musicaTrilha;
-            sourceMusica.Play();
-        }
-    }
-
     public void TocarSFX(AudioClip clip)
     {
         if (clip == null || sourceSFX == null) return;
         sourceSFX.PlayOneShot(clip, volumeSFX);
+    }
+
+    public void TocarMusicaMenu()
+    {
+        if (sourceMusica == null) return;
+
+        CarregarMusicaMenuPadrao();
+        CarregarClipsPadraoNoEditor();
+        TocarMusica(musicaMenuInicial != null ? musicaMenuInicial : musicaTrilha);
+    }
+
+    public void TocarMusicaJogo()
+    {
+        if (sourceMusica == null || musicaTrilha == null) return;
+        TocarMusica(musicaTrilha);
     }
 
     public void TocarTiro()
@@ -104,6 +120,13 @@ public class AudioManager : MonoBehaviour
     public void TocarMorteInimigo() => TocarSFX(sfxMorteInimigo);
     public void TocarMontar()      => TocarSFX(sfxMontar);
     public void TocarPortal()      => TocarSFX(sfxPortal);
+
+    public void PararMusica()
+    {
+        if (sourceMusica == null) return;
+        sourceMusica.Stop();
+        sourceMusica.clip = null;
+    }
 
     public void PausarMusica()  { if (sourceMusica != null) sourceMusica.Pause(); }
     public void RetomarMusica() { if (sourceMusica != null) sourceMusica.UnPause(); }
@@ -131,5 +154,27 @@ public class AudioManager : MonoBehaviour
         if (sfxPortal == null)
             sfxPortal = AssetDatabase.LoadAssetAtPath<AudioClip>(VitoriaPadraoPath);
 #endif
+    }
+
+    private void CarregarMusicaMenuPadrao()
+    {
+        if (musicaMenuInicial != null) return;
+
+        musicaMenuInicial = Resources.Load<AudioClip>(MusicaMenuResourcePath);
+
+#if UNITY_EDITOR
+        if (musicaMenuInicial == null)
+            musicaMenuInicial = AssetDatabase.LoadAssetAtPath<AudioClip>(MusicaMenuPadraoPath);
+#endif
+    }
+
+    private void TocarMusica(AudioClip clip)
+    {
+        if (clip == null || sourceMusica == null) return;
+        if (sourceMusica.clip == clip && sourceMusica.isPlaying) return;
+
+        sourceMusica.clip = clip;
+        sourceMusica.volume = volumeMusica;
+        sourceMusica.Play();
     }
 }

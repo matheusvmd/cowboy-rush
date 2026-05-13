@@ -59,6 +59,7 @@ public class PlayerController : MonoBehaviour
         if (GameManager.Instance != null && (!GameManager.Instance.JogoAtivo || GameManager.Instance.EstaEmPausa))
         {
             horizontal = 0f;
+            cavaloAtual?.AtualizarMontaria(horizontal, olhandoDireita);
             anim.SetFloat("Velocidade", 0f);
             return;
         }
@@ -107,6 +108,8 @@ public class PlayerController : MonoBehaviour
         if (horizontal > 0 && !olhandoDireita) Virar();
         else if (horizontal < 0 && olhandoDireita) Virar();
 
+        cavaloAtual?.AtualizarMontaria(horizontal, olhandoDireita);
+
         // Montar/Desmontar Cavalo
         if (kb.eKey.wasPressedThisFrame)
         {
@@ -142,6 +145,7 @@ public class PlayerController : MonoBehaviour
     {
         cavaloAtual = cavaloProximo;
         cavaloAtual.Montar(gameObject);
+        cavaloAtual.AtualizarMontaria(0f, olhandoDireita);
         cavaloProximo = null;
     }
 
@@ -149,6 +153,12 @@ public class PlayerController : MonoBehaviour
     {
         cavaloAtual.Desmontar();
         cavaloAtual = null;
+    }
+
+    public void NotificarDesmontou(HorseController cavalo)
+    {
+        if (cavaloAtual == cavalo)
+            cavaloAtual = null;
     }
 
     private void OnTriggerEnter2D(Collider2D outro)

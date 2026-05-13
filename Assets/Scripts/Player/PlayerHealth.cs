@@ -21,6 +21,14 @@ public class PlayerHealth : MonoBehaviour
         if (!invencivel) return;
 
         timerInvencivel -= Time.deltaTime;
+        if (cavaloDono != null)
+        {
+            if (sr != null) sr.enabled = false;
+            if (timerInvencivel <= 0f)
+                invencivel = false;
+            return;
+        }
+
         sr.enabled = Mathf.Sin(timerInvencivel * 20f) > 0;
 
         if (timerInvencivel <= 0f)
@@ -30,19 +38,36 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    public void DefinirCavalo(HorseController cavalo) => cavaloDono = cavalo;
+    public void DefinirCavalo(HorseController cavalo)
+    {
+        cavaloDono = cavalo;
+        if (cavalo == null || sr == null) return;
+
+        invencivel = false;
+        sr.enabled = false;
+    }
+
+    public void ProtegerAposDesmontar(float duracao)
+    {
+        invencivel = duracao > 0f;
+        timerInvencivel = duracao;
+        if (sr != null) sr.enabled = true;
+    }
 
     public void ReceberDano()
     {
-        if (invencivel) return;
-
-        // Cavalo absorve o dano e some
         if (cavaloDono != null)
         {
+            if (invencivel) return;
+
+            invencivel = true;
+            timerInvencivel = tempoInvencivel;
             cavaloDono.AbsorverDano();
             AudioManager.Instance?.TocarDano();
             return;
         }
+
+        if (invencivel) return;
 
         invencivel = true;
         timerInvencivel = tempoInvencivel;
