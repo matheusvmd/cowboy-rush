@@ -131,7 +131,16 @@ public class GameManager : MonoBehaviour
         JogoAtivo = false;
         EstaEmPausa = false;
         Time.timeScale = 0f;
-        UIManager.Instance?.MostrarVitoria();
+        if (EstaNaUltimaFase())
+            UIManager.Instance?.MostrarFimDoJogo();
+        else
+            UIManager.Instance?.MostrarVitoria();
+    }
+
+    private bool EstaNaUltimaFase()
+    {
+        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+        return buildIndex >= 0 && buildIndex >= SceneManager.sceneCountInBuildSettings - 1;
     }
 
     public void ProximaFase()

@@ -20,6 +20,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject painelMenuInicial;
     [SerializeField] private GameObject painelRegras;
     [SerializeField] private GameObject painelVitoria;
+    [SerializeField] private GameObject painelFimJogo;
     [SerializeField] private GameObject painelPausa;
     [SerializeField] private Image flashDano;
     [SerializeField] private Button botaoComecar;
@@ -29,6 +30,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button botaoJogarNovamente;
     [SerializeField] private Button botaoMenuVitoria;
     [SerializeField] private Button botaoProximaFase;
+    [SerializeField] private Button botaoJogarDeNovoFinal;
+    [SerializeField] private Button botaoMenuFinal;
     [SerializeField] private Sprite spriteVidaCheia;
     [SerializeField] private Sprite spriteVidaVazia;
     [SerializeField] private Sprite spriteMunicao;
@@ -200,6 +203,7 @@ public class UIManager : MonoBehaviour
         if (painelRegras      != null) painelRegras.SetActive(false);
         if (painelGameOver    != null) painelGameOver.SetActive(false);
         if (painelVitoria     != null) painelVitoria.SetActive(false);
+        if (painelFimJogo     != null) painelFimJogo.SetActive(false);
         if (painelPausa       != null) painelPausa.SetActive(false);
     }
 
@@ -212,6 +216,7 @@ public class UIManager : MonoBehaviour
         if (painelRegras      != null) painelRegras.SetActive(true);
         if (painelGameOver    != null) painelGameOver.SetActive(false);
         if (painelVitoria     != null) painelVitoria.SetActive(false);
+        if (painelFimJogo     != null) painelFimJogo.SetActive(false);
         if (painelPausa       != null) painelPausa.SetActive(false);
     }
 
@@ -231,6 +236,7 @@ public class UIManager : MonoBehaviour
         if (painelRegras      != null) painelRegras.SetActive(false);
         if (painelGameOver    != null) painelGameOver.SetActive(false);
         if (painelVitoria     != null) painelVitoria.SetActive(false);
+        if (painelFimJogo     != null) painelFimJogo.SetActive(false);
         if (painelPausa       != null) painelPausa.SetActive(false);
     }
 
@@ -243,6 +249,7 @@ public class UIManager : MonoBehaviour
         if (painelRegras      != null) painelRegras.SetActive(false);
         if (painelGameOver    != null) painelGameOver.SetActive(true);
         if (painelVitoria     != null) painelVitoria.SetActive(false);
+        if (painelFimJogo     != null) painelFimJogo.SetActive(false);
         if (painelPausa       != null) painelPausa.SetActive(false);
     }
 
@@ -255,6 +262,20 @@ public class UIManager : MonoBehaviour
         if (painelRegras      != null) painelRegras.SetActive(false);
         if (painelGameOver    != null) painelGameOver.SetActive(false);
         if (painelVitoria     != null) painelVitoria.SetActive(true);
+        if (painelFimJogo     != null) painelFimJogo.SetActive(false);
+        if (painelPausa       != null) painelPausa.SetActive(false);
+    }
+
+    public void MostrarFimDoJogo()
+    {
+        ConstruirTelasSeNecessario();
+        ConfigurarBotoes();
+        DefinirHudVisivel(false);
+        if (painelMenuInicial != null) painelMenuInicial.SetActive(false);
+        if (painelRegras      != null) painelRegras.SetActive(false);
+        if (painelGameOver    != null) painelGameOver.SetActive(false);
+        if (painelVitoria     != null) painelVitoria.SetActive(false);
+        if (painelFimJogo     != null) painelFimJogo.SetActive(true);
         if (painelPausa       != null) painelPausa.SetActive(false);
     }
 
@@ -296,6 +317,12 @@ public class UIManager : MonoBehaviour
         {
             Transform existente = transform.Find("Painel_Vitoria");
             painelVitoria = existente != null ? existente.gameObject : CriarTelaVitoria();
+        }
+
+        if (painelFimJogo == null)
+        {
+            Transform existente = transform.Find("Painel_FimJogo");
+            painelFimJogo = existente != null ? existente.gameObject : CriarTelaFimJogo();
         }
 
         if (painelPausa == null)
@@ -531,6 +558,81 @@ public class UIManager : MonoBehaviour
         imagem.color = cor;
         imagem.raycastTarget = false;
         return imagem;
+    }
+
+    private GameObject CriarTelaFimJogo()
+    {
+        GameObject painel = CriarPainelTelaCheia("Painel_FimJogo", Color.clear);
+        CriarFundoBg03(painel.transform, "Fundo_FimJogo", 0.12f);
+
+        GameObject vinheta = CriarRetanguloUI("Vinheta_FimJogo", painel.transform, new Color(0.015f, 0.009f, 0.003f, 0.66f));
+        EsticarTela(vinheta.GetComponent<RectTransform>());
+
+        CriarFaixaFundo(painel.transform, "Luz_Final_Topo", true, 220f, new Color(0.2f, 0.11f, 0.02f, 0.24f));
+        CriarFaixaFundo(painel.transform, "Luz_Final_Base", false, 240f, new Color(0.03f, 0.015f, 0.005f, 0.48f));
+
+        GameObject cartaz = CriarCartazWestern("Cartaz_FimJogo", painel.transform, new Vector2(880f, 590f), new Vector2(0f, 2f));
+
+        CriarMedalhaFinal(cartaz.transform, new Vector2(0f, 166f));
+        CriarLinhaDecorativa(cartaz.transform, "Linha_Fim_Topo", new Vector2(0f, 104f), new Vector2(610f, 5f), new Color(1f, 0.72f, 0.18f, 0.82f));
+        CriarLinhaDecorativa(cartaz.transform, "Linha_Fim_Base", new Vector2(0f, -138f), new Vector2(640f, 5f), new Color(1f, 0.72f, 0.18f, 0.72f));
+
+        Text selo = CriarTexto("Selo_FimJogo", cartaz.transform, "LENDA DO OESTE", 20,
+            new Color(1f, 0.92f, 0.5f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+            new Vector2(0f, 104f), new Vector2(330f, 34f));
+        selo.fontStyle = FontStyle.Bold;
+        AdicionarTextoSombra(selo, new Color(0.14f, 0.06f, 0.01f, 0.92f), new Vector2(2f, -2f));
+
+        Text titulo = CriarTexto("Titulo_FimJogo", cartaz.transform, "VOCE VENCEU", 64,
+            new Color(1f, 0.82f, 0.24f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
+            new Vector2(0f, 46f), new Vector2(-90f, 92f));
+        titulo.fontStyle = FontStyle.Bold;
+        AdicionarTextoSombra(titulo, new Color(0.08f, 0.025f, 0.005f, 0.96f), new Vector2(5f, -5f));
+        AdicionarTextoContorno(titulo, new Color(0.29f, 0.09f, 0.015f, 1f), new Vector2(3f, 3f));
+
+        Text subtitulo = CriarTexto("Subtitulo_FimJogo", cartaz.transform, "Todos os portais foram atravessados.", 25,
+            new Color(1f, 0.94f, 0.75f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
+            new Vector2(0f, -28f), new Vector2(-170f, 42f));
+        subtitulo.fontStyle = FontStyle.Bold;
+        AdicionarTextoSombra(subtitulo, new Color(0.1f, 0.045f, 0.02f, 0.86f), new Vector2(2f, -2f));
+
+        Text detalhe = CriarTexto("Detalhe_FimJogo", cartaz.transform, "O cowboy chegou ao fim da jornada e deixou seu nome marcado na fronteira.", 18,
+            new Color(0.92f, 0.78f, 0.52f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
+            new Vector2(0f, -84f), new Vector2(-230f, 48f));
+        detalhe.fontStyle = FontStyle.Bold;
+
+        botaoJogarDeNovoFinal = CriarBotaoWestern("Botao_JogarDeNovo_Final", cartaz.transform, "JOGAR DE NOVO", new Vector2(-150f, -205f), new Vector2(270f, 62f));
+        botaoMenuFinal = CriarBotaoWestern("Botao_Menu_Final", cartaz.transform, "MENU INICIAL", new Vector2(150f, -205f), new Vector2(270f, 62f));
+
+        painel.SetActive(false);
+        return painel;
+    }
+
+    private void CriarMedalhaFinal(Transform pai, Vector2 posicao)
+    {
+        GameObject medalha = new GameObject("Medalha_Final", typeof(RectTransform));
+        medalha.transform.SetParent(pai, false);
+
+        RectTransform medalhaRect = medalha.GetComponent<RectTransform>();
+        medalhaRect.anchorMin = new Vector2(0.5f, 0.5f);
+        medalhaRect.anchorMax = new Vector2(0.5f, 0.5f);
+        medalhaRect.pivot = new Vector2(0.5f, 0.5f);
+        medalhaRect.anchoredPosition = posicao;
+        medalhaRect.sizeDelta = new Vector2(150f, 150f);
+
+        CriarImagemPortal("Brilho_Medalha", medalha.transform, new Vector2(150f, 150f), new Color(1f, 0.74f, 0.18f, 0.34f));
+        CriarImagemPortal("Nucleo_Medalha", medalha.transform, new Vector2(96f, 96f), new Color(1f, 0.86f, 0.34f, 0.86f));
+
+        Text estrela = CriarTexto("Estrela_Medalha", medalha.transform, "★", 66,
+            new Color(0.25f, 0.11f, 0.015f, 1f), TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+            new Vector2(0f, 3f), new Vector2(82f, 82f));
+        estrela.fontStyle = FontStyle.Bold;
+        estrela.raycastTarget = false;
     }
 
     private GameObject CriarTelaPausa()
@@ -845,6 +947,8 @@ public class UIManager : MonoBehaviour
         ConfigurarBotao(botaoProximaFase,       () => GameManager.Instance?.ProximaFase());
         ConfigurarBotao(botaoJogarNovamente,    () => GameManager.Instance?.JogarNovamente());
         ConfigurarBotao(botaoMenuVitoria,       () => GameManager.Instance?.VoltarParaMenuInicial());
+        ConfigurarBotao(botaoJogarDeNovoFinal,  () => GameManager.Instance?.IniciarJogo());
+        ConfigurarBotao(botaoMenuFinal,         () => GameManager.Instance?.VoltarParaMenuInicial());
         ConfigurarBotao(botaoRetomarPausa,      () => GameManager.Instance?.RetomarJogo());
         ConfigurarBotao(botaoMenuPausaBtn,      () => GameManager.Instance?.VoltarParaMenuInicial());
 
